@@ -166,8 +166,9 @@
       &nbsp;&nbsp;&nbsp;&nbsp;또는 <code>한글_연번(YYYY.MM.DD.).확장자</code> (여러 장)</p>
 
       <p><b>이름 추출:</b> 폴더명의 <b>첫 한글/영문 글자 ~ 마지막 한글/영문 글자</b> 범위만 사용 (사이의 공백·숫자·기호는 유지, 앞뒤의 숫자·기호는 제거)</p>
-      <p><b>날짜:</b> 폴더 안 사진의 EXIF 촬영일 중 <b>가장 빠른 날짜</b></p>
-      <p><b>연번 순서:</b> EXIF 촬영일 오름차순 → 비이미지 파일은 뒤로</p>
+      <p><b>날짜:</b> 폴더 안 <b>사진의 EXIF 촬영일</b> 중 가장 빠른 날짜. 사진이 없거나 모두 EXIF 없으면 사용자 입력</p>
+      <p><b>동영상 처리:</b> 동영상(.mp4, .mov 등)은 <b>이름은 변경</b>하지만 촬영일자 추출은 하지 않습니다. 사진 뒤에 파일명 알파벳 순으로 배치되어 연번이 부여됩니다.</p>
+      <p><b>연번 순서:</b> 사진(EXIF 촬영일 오름차순) → 동영상·기타 파일(파일명 순)</p>
 
       <h3>5. 변환 예시</h3>
       <div class="ex">
@@ -456,14 +457,38 @@ async function listEntries(dirHandle) {
   return { files, subs };
 }
 
-async function readExifDate(fileHandle, fileName) {
-  if (!IMAGE_EXT.test(fileName)) return null;
+// EXIF 파싱 옵션 — 촬영일자만 빠르게 추출
+const EXIF_OPTS = {
+  tiff: { pick: ["DateTimeOriginal", "CreateDate", "DateTime"] },
+  ifd0: false, gps: false, xmp: false, iptc: false, icc: false, jfif: false, ihdr: false,
+  chunked: true,
+  firstChunkSize: 65536
+};
+
+async function readExifDate(fileHandle) {
   try {
     const file = await fileHandle.getFile();
-    const exif = await exifr.parse(file, ["DateTimeOriginal", "CreateDate", "DateTime"]).catch(() => null);
+    const exif = await exifr.parse(file, EXIF_OPTS).catch(() => null);
     if (!exif) return null;
     return exif.DateTimeOriginal || exif.CreateDate || exif.DateTime || null;
   } catch { return null; }
+}
+
+// 동시 실행 개수 제한 병렬 처리
+async function parallelMap(items, limit, fn, onProgress) {
+  const results = new Array(items.length);
+  let next = 0, done = 0;
+  async function worker() {
+    while (true) {
+      const i = next++;
+      if (i >= items.length) return;
+      results[i] = await fn(items[i], i);
+      done++;
+      if (onProgress) onProgress(done, items.length);
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
+  return results;
 }
 
 async function buildPlan() {
@@ -487,16 +512,32 @@ async function buildPlan() {
 
 async function analyzeTarget(handle, parent, name, files, isRoot) {
   const koreanName = extractKorean(name);
+
+  // 이미지 / 비이미지 분리 — 비이미지는 EXIF 스캔 자체를 건너뜀
+  const images = [];
+  const nonImages = [];
+  for (const f of files) {
+    if (IMAGE_EXT.test(f.name)) images.push(f);
+    else nonImages.push(f);
+  }
+
+  // 이미지 EXIF를 병렬로 읽기 (동시 8개)
+  const CONCURRENCY = 8;
+  const exifDates = await parallelMap(images, CONCURRENCY, f => readExifDate(f.handle),
+    (done, total) => {
+      $("analyzeProgress").textContent = `[${name}] EXIF 스캔 ${done}/${total}`;
+    });
+
+  // 결과 병합
   const fileInfo = [];
   let minDate = null;
-  let processed = 0;
-  for (const f of files) {
-    const exifDate = await readExifDate(f.handle, f.name);
+  images.forEach((f, i) => {
+    const exifDate = exifDates[i];
     fileInfo.push({ ...f, exifDate });
     if (exifDate && (!minDate || exifDate < minDate)) minDate = exifDate;
-    processed++;
-    $("analyzeProgress").textContent = `[${name}] ${processed}/${files.length} 스캔됨`;
-  }
+  });
+  for (const f of nonImages) fileInfo.push({ ...f, exifDate: null });
+
   return {
     handle, parent, originalName: name, isRoot,
     koreanName, date: minDate,
