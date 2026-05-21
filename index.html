@@ -166,8 +166,13 @@
       &nbsp;&nbsp;&nbsp;&nbsp;또는 <code>한글_연번(YYYY.MM.DD.).확장자</code> (여러 장)</p>
 
       <p><b>이름 추출:</b> 폴더명의 <b>첫 한글/영문 글자 ~ 마지막 한글/영문 글자</b> 범위만 사용 (사이의 공백·숫자·기호는 유지, 앞뒤의 숫자·기호는 제거)</p>
-      <p><b>날짜:</b> 폴더 안 <b>사진의 EXIF 촬영일</b> 중 가장 빠른 날짜. 사진이 없거나 모두 EXIF 없으면 사용자 입력</p>
-      <p><b>동영상 처리:</b> 동영상(.mp4, .mov 등)은 <b>이름은 변경</b>하지만 촬영일자 추출은 하지 않습니다. 사진 뒤에 파일명 알파벳 순으로 배치되어 연번이 부여됩니다.</p>
+      <p><b>날짜 추출 우선순위:</b></p>
+      <ol>
+        <li>폴더에 <b>사진이 있으면</b> → 사진의 EXIF 촬영일 중 가장 빠른 날짜 사용 (영상은 무시)</li>
+        <li>폴더에 <b>사진이 없고 영상만 있으면</b> → 영상의 mvhd 촬영일 중 가장 빠른 날짜 사용 (mp4, mov, m4v 등)</li>
+        <li>위 두 가지 모두 실패하면 → <b>사용자에게 직접 입력 요청</b></li>
+      </ol>
+      <p><b>동영상 처리:</b> 이름은 변경하지만 사진이 함께 있을 때는 촬영일 추출 대상이 아닙니다. 사진 뒤에 파일명 알파벳 순으로 배치되어 연번이 부여됩니다.</p>
       <p><b>연번 순서:</b> 사진(EXIF 촬영일 오름차순) → 동영상·기타 파일(파일명 순)</p>
 
       <h3>5. 변환 예시</h3>
@@ -316,6 +321,8 @@
  * ============================================================ */
 
 const IMAGE_EXT = /\.(jpe?g|tiff?|heic|heif|png|webp|cr2|nef|arw|dng)$/i;
+const VIDEO_EXT = /\.(mp4|mov|m4v|3gp|3g2)$/i;
+const EPOCH_1904 = 2082844800; // 1904-01-01 ~ 1970-01-01 (초)
 
 // ---------- State ----------
 let rootHandle = null;
@@ -474,6 +481,76 @@ async function readExifDate(fileHandle) {
   } catch { return null; }
 }
 
+// MP4/MOV mvhd 박스에서 creation_time 추출
+function readBoxType(dv, pos) {
+  return String.fromCharCode(dv.getUint8(pos), dv.getUint8(pos+1), dv.getUint8(pos+2), dv.getUint8(pos+3));
+}
+
+function findBox(dv, start, end, targetType) {
+  let pos = start;
+  const limit = Math.min(end, dv.byteLength);
+  while (pos + 8 <= limit) {
+    let size = dv.getUint32(pos);
+    const type = readBoxType(dv, pos + 4);
+    let headerSize = 8;
+    if (size === 1) {
+      if (pos + 16 > dv.byteLength) return null;
+      const hi = dv.getUint32(pos + 8);
+      const lo = dv.getUint32(pos + 12);
+      size = hi * 0x100000000 + lo;
+      headerSize = 16;
+    } else if (size === 0) {
+      size = limit - pos;
+    }
+    if (size < headerSize) return null;
+    if (type === targetType) return { pos, headerSize, size };
+    pos += size;
+  }
+  return null;
+}
+
+function parseMvhdDate(dv) {
+  const moov = findBox(dv, 0, dv.byteLength, "moov");
+  if (!moov) return null;
+  const mvhd = findBox(dv, moov.pos + moov.headerSize, moov.pos + moov.size, "mvhd");
+  if (!mvhd) return null;
+  const dataStart = mvhd.pos + mvhd.headerSize;
+  if (dataStart + 8 > dv.byteLength) return null;
+  const version = dv.getUint8(dataStart);
+  const ctOff = dataStart + 4;
+  let ct;
+  if (version === 1) {
+    if (ctOff + 8 > dv.byteLength) return null;
+    const hi = dv.getUint32(ctOff);
+    const lo = dv.getUint32(ctOff + 4);
+    ct = hi * 0x100000000 + lo;
+  } else {
+    if (ctOff + 4 > dv.byteLength) return null;
+    ct = dv.getUint32(ctOff);
+  }
+  if (!ct) return null;
+  const d = new Date((ct - EPOCH_1904) * 1000);
+  if (d.getFullYear() < 1980 || d.getFullYear() > 2100) return null;
+  return d;
+}
+
+async function readVideoDate(fileHandle) {
+  try {
+    const file = await fileHandle.getFile();
+    const headSize = Math.min(file.size, 1024 * 1024);
+    const headBuf = await file.slice(0, headSize).arrayBuffer();
+    let d = parseMvhdDate(new DataView(headBuf));
+    if (d) return d;
+    // moov가 파일 끝에 있는 경우 (PC 인코더 출력본 등)
+    if (file.size > 1024 * 1024) {
+      const tailBuf = await file.slice(file.size - 1024 * 1024).arrayBuffer();
+      d = parseMvhdDate(new DataView(tailBuf));
+      if (d) return d;
+    }
+    return null;
+  } catch { return null; }
+}
+
 // 동시 실행 개수 제한 병렬 처리
 async function parallelMap(items, limit, fn, onProgress) {
   const results = new Array(items.length);
@@ -513,30 +590,46 @@ async function buildPlan() {
 async function analyzeTarget(handle, parent, name, files, isRoot) {
   const koreanName = extractKorean(name);
 
-  // 이미지 / 비이미지 분리 — 비이미지는 EXIF 스캔 자체를 건너뜀
+  // 이미지 / 동영상 / 기타 분리
   const images = [];
-  const nonImages = [];
+  const videos = [];
+  const others = [];
   for (const f of files) {
     if (IMAGE_EXT.test(f.name)) images.push(f);
-    else nonImages.push(f);
+    else if (VIDEO_EXT.test(f.name)) videos.push(f);
+    else others.push(f);
   }
 
-  // 이미지 EXIF를 병렬로 읽기 (동시 8개)
   const CONCURRENCY = 8;
+
+  // 1순위: 사진 EXIF 병렬 스캔
   const exifDates = await parallelMap(images, CONCURRENCY, f => readExifDate(f.handle),
     (done, total) => {
-      $("analyzeProgress").textContent = `[${name}] EXIF 스캔 ${done}/${total}`;
+      $("analyzeProgress").textContent = `[${name}] 사진 EXIF ${done}/${total}`;
     });
 
-  // 결과 병합
-  const fileInfo = [];
   let minDate = null;
-  images.forEach((f, i) => {
-    const exifDate = exifDates[i];
-    fileInfo.push({ ...f, exifDate });
-    if (exifDate && (!minDate || exifDate < minDate)) minDate = exifDate;
+  exifDates.forEach(d => {
+    if (d && (!minDate || d < minDate)) minDate = d;
   });
-  for (const f of nonImages) fileInfo.push({ ...f, exifDate: null });
+
+  // 2순위: 사진이 한 장도 없을 때만 영상 촬영일 시도
+  let videoDates = new Array(videos.length).fill(null);
+  if (images.length === 0 && videos.length > 0) {
+    videoDates = await parallelMap(videos, 4, f => readVideoDate(f.handle),
+      (done, total) => {
+        $("analyzeProgress").textContent = `[${name}] 영상 메타 ${done}/${total}`;
+      });
+    videoDates.forEach(d => {
+      if (d && (!minDate || d < minDate)) minDate = d;
+    });
+  }
+
+  // 결과 병합 (정렬은 computeNewNames에서 수행)
+  const fileInfo = [];
+  images.forEach((f, i) => fileInfo.push({ ...f, exifDate: exifDates[i] }));
+  videos.forEach((f, i) => fileInfo.push({ ...f, exifDate: null })); // 정렬에는 사용 안 함
+  for (const f of others) fileInfo.push({ ...f, exifDate: null });
 
   return {
     handle, parent, originalName: name, isRoot,
