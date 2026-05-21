@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>📁 파일명 일괄 변경기</title>
+<style>
+  :root{
+    --bg:#1e1e2e; --bg2:#181825; --surface:#313244; --surface2:#45475a;
+    --text:#cdd6f4; --muted:#a6adc8; --accent:#89b4fa;
+    --green:#a6e3a1; --yellow:#f9e2af; --red:#f38ba8;
+  }
+  body.light{
+    --bg:#eff1f5; --bg2:#e6e9ef; --surface:#ffffff; --surface2:#dce0e8;
+    --text:#4c4f69; --muted:#6c6f85; --accent:#1e66f5;
+    --green:#40a02b; --yellow:#df8e1d; --red:#d20f39;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
+    font-family:"Malgun Gothic","Apple SD Gothic Neo","Segoe UI",sans-serif;font-size:14px;}
+  .app{max-width:1100px;margin:0 auto;padding:18px 24px 60px}
+  header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+  h1{margin:0;color:var(--accent);font-size:22px}
+  h2{color:var(--accent);font-size:16px;margin:18px 0 10px}
+  .theme-toggle{background:var(--surface);color:var(--accent);border:1px solid var(--surface2);
+    border-radius:50%;width:38px;height:38px;font-size:18px;cursor:pointer}
+  .banner{background:var(--yellow);color:#000;padding:10px 16px;border-radius:6px;
+    margin-bottom:14px;font-size:13px;font-weight:600}
+  .banner.error{background:var(--red);color:#fff}
+  .dropzone{background:var(--surface);border:2px dashed var(--accent);border-radius:10px;
+    padding:36px;text-align:center;font-weight:bold;cursor:pointer;transition:.15s}
+  .dropzone:hover,.dropzone.drag{background:var(--surface2)}
+  .dropzone small{display:block;color:var(--muted);font-weight:normal;margin-top:8px;font-size:12px}
+  .pathbar{color:var(--accent);font-size:12px;margin:8px 0;word-break:break-all;min-height:18px}
+  button{background:var(--surface);color:var(--text);border:1px solid var(--surface2);
+    border-radius:6px;padding:9px 16px;font-size:13px;font-weight:600;cursor:pointer}
+  button:hover{background:var(--surface2)}
+  button.primary{background:var(--accent);color:var(--bg);border-color:var(--accent)}
+  button.primary:hover{background:var(--green);border-color:var(--green)}
+  button:disabled{opacity:.4;cursor:not-allowed}
+  input[type=text],input[type=date]{background:var(--surface);color:var(--text);
+    border:1px solid var(--surface2);border-radius:6px;padding:8px 10px;font-size:13px;outline:none}
+  input[type=text]:focus,input[type=date]:focus{border-color:var(--accent)}
+  .summary{display:flex;gap:14px;flex-wrap:wrap;margin:10px 0}
+  .summary .chip{background:var(--surface);border:1px solid var(--surface2);
+    border-radius:20px;padding:6px 12px;font-size:12px}
+  .summary .chip b{color:var(--accent)}
+  .summary .chip.warn b{color:var(--yellow)}
+  .input-card{background:var(--surface);border:1px solid var(--surface2);
+    border-radius:8px;padding:14px;margin-bottom:10px}
+  .input-card .orig{color:var(--muted);font-size:12px;margin-bottom:8px;word-break:break-all}
+  .input-card .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .input-card label{font-size:12px;color:var(--muted)}
+  .table-wrap{background:var(--surface);border-radius:8px;overflow:auto;max-height:520px}
+  table{width:100%;border-collapse:collapse;font-size:12px}
+  thead{position:sticky;top:0;background:var(--surface2);z-index:1}
+  th,td{padding:7px 10px;text-align:left;border-bottom:1px solid var(--bg2);
+    white-space:nowrap;vertical-align:top}
+  th{color:var(--accent);font-weight:600}
+  tr.folder td{background:var(--surface2);color:var(--accent);font-weight:bold}
+  tr.changed td.new{color:var(--yellow)}
+  tr.same td{color:var(--muted)}
+  tr.error td{color:var(--red)}
+  fieldset{border:1px solid var(--surface2);border-radius:8px;padding:12px 16px;margin:14px 0}
+  legend{color:var(--accent);padding:0 6px;font-size:13px;font-weight:600}
+  fieldset label{display:inline-flex;align-items:center;gap:6px;margin-right:18px;font-size:13px;cursor:pointer}
+  .actions{display:flex;gap:10px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap}
+  .report{background:var(--surface);border-radius:8px;padding:14px;font-size:13px;line-height:1.6}
+  .report .ok{color:var(--green)}
+  .report .fail{color:var(--red)}
+  .hidden{display:none !important}
+  .muted{color:var(--muted);font-size:12px}
+  .spinner{display:inline-block;width:14px;height:14px;border:2px solid var(--surface2);
+    border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;
+    vertical-align:middle;margin-right:8px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* Help modal */
+  .modal-back{position:fixed;inset:0;background:rgba(0,0,0,.65);display:flex;
+    align-items:center;justify-content:center;z-index:100;padding:20px}
+  .modal{background:var(--bg);border:1px solid var(--surface2);border-radius:12px;
+    max-width:760px;width:100%;max-height:90vh;overflow:auto;padding:24px 28px;
+    box-shadow:0 12px 40px rgba(0,0,0,.5)}
+  .modal h2{margin-top:0}
+  .modal h3{color:var(--accent);font-size:14px;margin:18px 0 8px;border-bottom:1px solid var(--surface2);padding-bottom:4px}
+  .modal p,.modal li{font-size:13px;line-height:1.7;color:var(--text)}
+  .modal ol,.modal ul{padding-left:22px;margin:6px 0}
+  .modal code{background:var(--surface);color:var(--yellow);padding:2px 6px;border-radius:4px;font-size:12px}
+  .modal .ex{background:var(--surface);border-left:3px solid var(--accent);padding:8px 12px;
+    margin:6px 0;font-size:12px;font-family:Consolas,monospace;border-radius:4px;line-height:1.7}
+  .modal .ex .arrow{color:var(--muted);margin:0 8px}
+  .modal .ex .out{color:var(--green)}
+  .modal table{width:100%;border-collapse:collapse;font-size:12px;margin:6px 0}
+  .modal table th,.modal table td{border:1px solid var(--surface2);padding:6px 10px;text-align:left}
+  .modal table th{background:var(--surface2);color:var(--accent)}
+  .modal .close{position:sticky;top:0;float:right;background:var(--surface);
+    border:1px solid var(--surface2);color:var(--text);border-radius:50%;
+    width:32px;height:32px;font-size:16px;cursor:pointer;margin-left:10px}
+  .modal .tip{background:var(--surface);border-left:3px solid var(--yellow);
+    padding:8px 12px;border-radius:4px;font-size:12px;color:var(--text);margin:8px 0}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <h1>📁 파일명 일괄 변경기</h1>
+    <div style="display:flex;gap:8px">
+      <button class="theme-toggle" id="helpBtn" title="도움말">❓</button>
+      <button class="theme-toggle" id="themeToggle" title="테마">🌙</button>
+    </div>
+  </header>
+
+  <!-- HELP MODAL -->
+  <div id="helpModal" class="modal-back hidden">
+    <div class="modal">
+      <button class="close" id="helpClose" title="닫기">✕</button>
+      <h2>📖 도움말</h2>
+      <p class="muted">이 도구는 폴더 안의 사진·파일 이름을 <b>「행사명(촬영일자)」</b> 형식으로 자동 정리해줍니다.</p>
+
+      <h3>1. 무엇을 해주나요?</h3>
+      <ul>
+        <li>폴더 이름에서 <b>한글 부분</b>을 행사명으로 추출</li>
+        <li>사진의 <b>EXIF 촬영 정보</b>를 읽어 가장 빠른 날짜를 추출</li>
+        <li>폴더명·파일명을 통일된 규칙으로 한꺼번에 변경</li>
+        <li>파일이 여러 장이면 촬영 순서대로 <b>_1, _2…</b> 연번 부여</li>
+      </ul>
+
+      <h3>2. 사용 순서</h3>
+      <ol>
+        <li><b>폴더 선택</b> — 사진이 들어있는 폴더(또는 여러 행사 폴더가 든 상위 폴더)를 드래그하거나 클릭해서 선택</li>
+        <li><b>자동 분석</b> — 한글 추출과 EXIF 스캔이 자동 진행됩니다 (사진이 많으면 시간이 걸려요)</li>
+        <li><b>입력 필요 항목 채우기</b> — 한글이 없거나 EXIF 날짜가 없는 폴더만 직접 입력</li>
+        <li><b>미리보기 확인</b> — 변경 전/후를 표로 비교</li>
+        <li><b>저장 위치 선택</b> — 원본 덮어쓰기 또는 새 폴더에 복사</li>
+        <li><b>변경 실행</b> 버튼 클릭 → 완료</li>
+      </ol>
+
+      <h3>3. 폴더 구조 (자동 인식)</h3>
+      <table>
+        <tr><th>입력 폴더 안에…</th><th>처리 방식</th></tr>
+        <tr><td>파일만 있음</td><td>선택한 폴더 1개를 행사 폴더로 처리</td></tr>
+        <tr><td>하위 폴더만 있음</td><td>각 하위 폴더를 행사 폴더로 처리</td></tr>
+        <tr><td>둘 다 섞여 있음</td><td>현재 폴더 + 각 하위 폴더 모두 처리</td></tr>
+      </table>
+
+      <h3>4. 명명 규칙</h3>
+      <p><b>폴더명</b> = <code>한글(YYYY.MM.DD.)</code><br>
+      <b>파일명</b> = <code>한글(YYYY.MM.DD.).확장자</code> (1장)<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;또는 <code>한글_연번(YYYY.MM.DD.).확장자</code> (여러 장)</p>
+
+      <p><b>한글 추출:</b> 폴더명의 <b>첫 한글 ~ 마지막 한글</b> 범위만 사용</p>
+      <p><b>날짜:</b> 폴더 안 사진의 EXIF 촬영일 중 <b>가장 빠른 날짜</b></p>
+      <p><b>연번 순서:</b> EXIF 촬영일 오름차순 → 비이미지 파일은 뒤로</p>
+
+      <h3>5. 변환 예시</h3>
+      <div class="ex">
+        2026_저녁 노을 사진 01 <span class="arrow">→</span> <span class="out">저녁 노을 사진(2026.05.02.)</span>
+      </div>
+      <div class="ex">
+        0502 운동회 <span class="arrow">→</span> <span class="out">운동회(2026.05.02.)</span>
+      </div>
+      <div class="ex">
+        26.5.2. 봄소풍 1 <span class="arrow">→</span> <span class="out">봄소풍(2026.05.02.)</span>
+      </div>
+      <div class="ex">
+        IMG_0001.jpg, IMG_0002.jpg<br>
+        <span class="arrow">→</span> <span class="out">저녁 노을 사진_1(2026.05.02.).jpg</span><br>
+        <span class="arrow">→</span> <span class="out">저녁 노을 사진_2(2026.05.02.).jpg</span>
+      </div>
+
+      <h3>6. 저장 위치</h3>
+      <ul>
+        <li><b>원본 폴더에 덮어쓰기</b> — 빠르고 디스크 공간 절약. 원본 파일이 그 자리에서 이름만 바뀝니다.
+          <div class="tip">⚠ 선택한 <b>최상위 폴더 자체</b>의 이름은 브라우저 제약으로 바꿀 수 없습니다. 안쪽 파일과 하위 폴더만 변경돼요.</div>
+        </li>
+        <li><b>새 폴더에 복사</b> — 원본 보존. 새로 지정한 폴더에 변경된 이름으로 복사본 생성. 최상위 폴더 이름까지 바꾸려면 이 모드를 선택하세요.</li>
+      </ul>
+
+      <h3>7. 자주 묻는 질문</h3>
+      <p><b>Q. 일부 사진의 날짜가 비어요.</b><br>
+      A. EXIF 정보가 없는 사진(스크린샷, 편집된 사진 등)은 자동 추출이 안 됩니다. 입력 단계에서 직접 날짜를 지정해주세요.</p>
+
+      <p><b>Q. 한글이 없는 폴더는 어떻게 되나요?</b><br>
+      A. 입력 단계에서 한글 이름을 직접 입력하면 됩니다.</p>
+
+      <p><b>Q. 실행 후 되돌릴 수 있나요?</b><br>
+      A. 「원본 덮어쓰기」 모드는 되돌릴 수 없습니다. 걱정되면 「새 폴더에 복사」 모드를 사용하세요.</p>
+
+      <p><b>Q. Firefox나 Safari에서 안 돼요.</b><br>
+      A. File System Access API는 현재 <b>Chrome / Edge</b>에서만 지원됩니다.</p>
+
+      <h3>8. 안전 팁</h3>
+      <div class="tip">처음 사용하실 때는 <b>테스트용 폴더</b>로 한 번 돌려본 뒤 본 작업을 진행하세요. 중요한 자료는 작업 전 <b>백업</b>을 권장합니다.</div>
+
+      <div class="actions">
+        <button id="helpCloseBottom" class="primary">닫기</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="browserWarning" class="banner error hidden">
+    ⚠️ 이 도구는 <b>Chrome</b> 또는 <b>Edge</b> 브라우저에서만 작동합니다.
+  </div>
+
+  <!-- STEP 1: Pick -->
+  <section id="stepPick">
+    <div id="dropzone" class="dropzone">
+      📂 폴더를 여기에 드래그하거나 클릭해 선택
+      <small>선택한 폴더 안의 파일 또는 하위 폴더를 자동 분석합니다</small>
+    </div>
+    <div id="rootPath" class="pathbar"></div>
+  </section>
+
+  <!-- STEP 2: Analyzing -->
+  <section id="stepAnalyzing" class="hidden">
+    <p><span class="spinner"></span>EXIF 스캔 및 자동 분석 중...</p>
+    <p id="analyzeProgress" class="muted"></p>
+  </section>
+
+  <!-- STEP 3: Manual input for missing data -->
+  <section id="stepInput" class="hidden">
+    <h2>⚠ 자동 추출 실패 — 입력이 필요합니다</h2>
+    <p class="muted">아래 폴더는 한글 이름 또는 날짜를 자동으로 찾지 못했습니다. 직접 입력해주세요.</p>
+    <div id="inputList"></div>
+    <div class="actions">
+      <button id="inputDone" class="primary">완료 → 미리보기</button>
+    </div>
+  </section>
+
+  <!-- STEP 4: Preview & destination -->
+  <section id="stepPreview" class="hidden">
+    <h2>미리보기</h2>
+    <div id="summary" class="summary"></div>
+    <div class="table-wrap"><table id="previewTable">
+      <thead><tr><th>변경 전</th><th>변경 후</th><th>비고</th></tr></thead>
+      <tbody></tbody>
+    </table></div>
+
+    <fieldset>
+      <legend>저장 위치</legend>
+      <label><input type="radio" name="dest" value="inplace" checked> 원본 폴더에 덮어쓰기 (이름만 변경)</label>
+      <label><input type="radio" name="dest" value="copy"> 새 폴더에 복사 (원본 보존)</label>
+      <div id="destPicker" class="hidden" style="margin-top:10px">
+        <button id="pickDestBtn">📁 출력 폴더 선택</button>
+        <span id="destPath" class="pathbar"></span>
+      </div>
+      <div id="rootRenameNotice" class="muted hidden" style="margin-top:8px">
+        ℹ 선택한 최상위 폴더 자체의 이름은 브라우저 API 제약으로 변경할 수 없습니다. 안쪽 파일·하위폴더만 변경됩니다.
+        (최상위 폴더 이름까지 바꾸려면 「새 폴더에 복사」를 선택하세요.)
+      </div>
+    </fieldset>
+
+    <div class="actions">
+      <button id="backToInput">← 뒤로</button>
+      <button id="execute" class="primary">✅ 변경 실행</button>
+    </div>
+  </section>
+
+  <!-- STEP 5: Done -->
+  <section id="stepDone" class="hidden">
+    <h2>완료</h2>
+    <div id="report" class="report"></div>
+    <div class="actions">
+      <button id="reset" class="primary">🔄 다시 시작</button>
+    </div>
+  </section>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/exifr/dist/full.umd.js"></script>
+<script>
+"use strict";
+
+/* ============================================================
+ * 파일명 일괄 변경기 v2
+ * - 한글 추출 + EXIF 촬영일 기반 자동 명명
+ * - 폴더명/파일명: 한글(YYYY.MM.DD.)
+ * ============================================================ */
+
+const IMAGE_EXT = /\.(jpe?g|tiff?|heic|heif|png|webp|cr2|nef|arw|dng)$/i;
+
+// ---------- State ----------
+let rootHandle = null;
+let plan = []; // [{handle, parent, originalName, koreanName, date, files:[{name,handle,exifDate,newName}], needsName, needsDate, isRoot}]
+let destMode = "inplace";
+let destHandle = null;
+
+// ---------- Utils ----------
+const $ = (id) => document.getElementById(id);
+
+function extractKorean(s) {
+  if (!s) return null;
+  const m = s.match(/[가-힣][가-힣\s]*[가-힣]|[가-힣]/);
+  if (!m) return null;
+  return m[0].replace(/\s+/g, " ").trim() || null;
+}
+
+function formatDate(d) {
+  if (!(d instanceof Date) || isNaN(d)) return null;
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}.${m}.${day}.`;
+}
+
+function parseDateInput(v) {
+  if (!v) return null;
+  const d = new Date(v);
+  return isNaN(d) ? null : d;
+}
+
+function splitExt(name) {
+  const m = name.match(/^(.*?)(\.[^.]+)?$/);
+  return { base: m[1] || name, ext: m[2] || "" };
+}
+
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, c => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  }[c]));
+}
+
+function showSection(id) {
+  ["stepPick","stepAnalyzing","stepInput","stepPreview","stepDone"]
+    .forEach(s => $(s).classList.toggle("hidden", s !== id));
+}
+
+// ---------- Browser check ----------
+if (!window.showDirectoryPicker) {
+  $("browserWarning").classList.remove("hidden");
+  $("dropzone").style.opacity = 0.4;
+  $("dropzone").style.pointerEvents = "none";
+}
+
+// ---------- Help modal ----------
+$("helpBtn").onclick = () => $("helpModal").classList.remove("hidden");
+$("helpClose").onclick = () => $("helpModal").classList.add("hidden");
+$("helpCloseBottom").onclick = () => $("helpModal").classList.add("hidden");
+$("helpModal").addEventListener("click", e => {
+  if (e.target.id === "helpModal") $("helpModal").classList.add("hidden");
+});
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") $("helpModal").classList.add("hidden");
+});
+
+// ---------- Theme ----------
+$("themeToggle").onclick = () => {
+  document.body.classList.toggle("light");
+  $("themeToggle").textContent = document.body.classList.contains("light") ? "☀️" : "🌙";
+  localStorage.setItem("theme", document.body.classList.contains("light") ? "light" : "dark");
+};
+if (localStorage.getItem("theme") === "light") {
+  document.body.classList.add("light");
+  $("themeToggle").textContent = "☀️";
+}
+
+// ---------- Pick folder ----------
+$("dropzone").onclick = pickFolder;
+$("dropzone").addEventListener("dragover", e => { e.preventDefault(); $("dropzone").classList.add("drag"); });
+$("dropzone").addEventListener("dragleave", () => $("dropzone").classList.remove("drag"));
+$("dropzone").addEventListener("drop", async e => {
+  e.preventDefault();
+  $("dropzone").classList.remove("drag");
+  const item = e.dataTransfer.items?.[0];
+  if (item && item.getAsFileSystemHandle) {
+    const h = await item.getAsFileSystemHandle();
+    if (h.kind === "directory") {
+      rootHandle = h;
+      await startAnalyze();
+    } else {
+      alert("폴더를 드롭해주세요.");
+    }
+  }
+});
+
+async function pickFolder() {
+  try {
+    rootHandle = await window.showDirectoryPicker({ mode: "readwrite" });
+    await startAnalyze();
+  } catch (e) {
+    if (e.name !== "AbortError") console.error(e);
+  }
+}
+
+async function startAnalyze() {
+  $("rootPath").textContent = "📂 " + rootHandle.name;
+  showSection("stepAnalyzing");
+  $("analyzeProgress").textContent = "";
+  try {
+    await buildPlan();
+    if (plan.some(p => p.needsName || p.needsDate)) {
+      renderInputStep();
+      showSection("stepInput");
+    } else {
+      finalizePlanAndPreview();
+    }
+  } catch (e) {
+    console.error(e);
+    alert("분석 중 오류: " + e.message);
+    showSection("stepPick");
+  }
+}
+
+// ---------- Build plan ----------
+async function listEntries(dirHandle) {
+  const files = [];
+  const subs = [];
+  for await (const [name, h] of dirHandle.entries()) {
+    if (h.kind === "file") files.push({ name, handle: h });
+    else subs.push({ name, handle: h });
+  }
+  return { files, subs };
+}
+
+async function readExifDate(fileHandle, fileName) {
+  if (!IMAGE_EXT.test(fileName)) return null;
+  try {
+    const file = await fileHandle.getFile();
+    const exif = await exifr.parse(file, ["DateTimeOriginal", "CreateDate", "DateTime"]).catch(() => null);
+    if (!exif) return null;
+    return exif.DateTimeOriginal || exif.CreateDate || exif.DateTime || null;
+  } catch { return null; }
+}
+
+async function buildPlan() {
+  plan = [];
+  const { files, subs } = await listEntries(rootHandle);
+
+  // State 1: root has files → root itself is a target
+  if (files.length > 0) {
+    plan.push(await analyzeTarget(rootHandle, null, rootHandle.name, files, true));
+  }
+  // State 2: each subfolder is a target
+  for (const s of subs) {
+    const { files: sfFiles } = await listEntries(s.handle);
+    plan.push(await analyzeTarget(s.handle, rootHandle, s.name, sfFiles, false));
+  }
+
+  if (plan.length === 0) {
+    throw new Error("선택한 폴더에 파일이나 하위 폴더가 없습니다.");
+  }
+}
+
+async function analyzeTarget(handle, parent, name, files, isRoot) {
+  const koreanName = extractKorean(name);
+  const fileInfo = [];
+  let minDate = null;
+  let processed = 0;
+  for (const f of files) {
+    const exifDate = await readExifDate(f.handle, f.name);
+    fileInfo.push({ ...f, exifDate });
+    if (exifDate && (!minDate || exifDate < minDate)) minDate = exifDate;
+    processed++;
+    $("analyzeProgress").textContent = `[${name}] ${processed}/${files.length} 스캔됨`;
+  }
+  return {
+    handle, parent, originalName: name, isRoot,
+    koreanName, date: minDate,
+    files: fileInfo,
+    needsName: !koreanName,
+    needsDate: !minDate
+  };
+}
+
+// ---------- Manual input step ----------
+function renderInputStep() {
+  const list = $("inputList");
+  list.innerHTML = "";
+  plan.forEach((p, i) => {
+    if (!p.needsName && !p.needsDate) return;
+    const card = document.createElement("div");
+    card.className = "input-card";
+    card.innerHTML = `
+      <div class="orig">📁 ${esc(p.originalName)}${p.isRoot ? " (최상위)" : ""}</div>
+      <div class="row">
+        ${p.needsName ? `
+          <label>폴더명(한글):
+            <input type="text" data-idx="${i}" data-field="name"
+              placeholder="예: 저녁 노을 사진" value="${esc(p.koreanName || "")}">
+          </label>` : `<span class="muted">한글: <b>${esc(p.koreanName)}</b></span>`}
+        ${p.needsDate ? `
+          <label>날짜:
+            <input type="date" data-idx="${i}" data-field="date">
+          </label>` : `<span class="muted">날짜: <b>${formatDate(p.date)}</b></span>`}
+      </div>
+    `;
+    list.appendChild(card);
+  });
+}
+
+$("inputDone").onclick = () => {
+  // Collect inputs
+  document.querySelectorAll("#inputList input").forEach(inp => {
+    const i = +inp.dataset.idx;
+    const f = inp.dataset.field;
+    if (f === "name") {
+      const v = extractKorean(inp.value.trim()) || inp.value.trim();
+      if (v) { plan[i].koreanName = v; plan[i].needsName = false; }
+    } else if (f === "date") {
+      const d = parseDateInput(inp.value);
+      if (d) { plan[i].date = d; plan[i].needsDate = false; }
+    }
+  });
+  const missing = plan.filter(p => p.needsName || p.needsDate);
+  if (missing.length) {
+    alert(`${missing.length}개 폴더에 미입력 항목이 있습니다.`);
+    return;
+  }
+  finalizePlanAndPreview();
+};
+
+// ---------- Compute new names ----------
+function computeNewNames() {
+  for (const p of plan) {
+    const dateStr = formatDate(p.date);
+    p.newFolderName = `${p.koreanName}(${dateStr})`;
+    // Sort: images by EXIF asc, then non-images by name
+    const images = p.files.filter(f => f.exifDate).sort((a,b) => a.exifDate - b.exifDate);
+    const others = p.files.filter(f => !f.exifDate).sort((a,b) => a.name.localeCompare(b.name, "ko"));
+    const sorted = [...images, ...others];
+    if (sorted.length === 1) {
+      const { ext } = splitExt(sorted[0].name);
+      sorted[0].newName = `${p.koreanName}(${dateStr})${ext}`;
+    } else {
+      sorted.forEach((f, i) => {
+        const { ext } = splitExt(f.name);
+        f.newName = `${p.koreanName}_${i+1}(${dateStr})${ext}`;
+      });
+    }
+    p.files = sorted;
+  }
+}
+
+// ---------- Preview ----------
+function finalizePlanAndPreview() {
+  computeNewNames();
+  renderPreview();
+  showSection("stepPreview");
+}
+
+function renderPreview() {
+  // Summary
+  const totalFolders = plan.length;
+  const totalFiles = plan.reduce((s,p) => s + p.files.length, 0);
+  $("summary").innerHTML = `
+    <span class="chip">대상 폴더 <b>${totalFolders}</b></span>
+    <span class="chip">총 파일 <b>${totalFiles}</b></span>
+  `;
+
+  // Table
+  const tbody = $("previewTable").querySelector("tbody");
+  tbody.innerHTML = "";
+  for (const p of plan) {
+    const folderUnchanged = p.isRoot || p.originalName === p.newFolderName;
+    const trF = document.createElement("tr");
+    trF.className = "folder";
+    trF.innerHTML = `
+      <td>${esc(p.originalName)}${p.isRoot ? " <small>(최상위)</small>" : ""}</td>
+      <td>${esc(p.newFolderName)}${p.isRoot ? " <small>(이름 변경은 복사 모드에서만)</small>" : ""}</td>
+      <td>${folderUnchanged ? "변경 없음" : "📁 폴더 변경"}</td>
+    `;
+    tbody.appendChild(trF);
+    for (const f of p.files) {
+      const tr = document.createElement("tr");
+      const changed = f.name !== f.newName;
+      tr.className = changed ? "changed" : "same";
+      tr.innerHTML = `
+        <td>${esc(f.name)}</td>
+        <td class="new">${esc(f.newName)}</td>
+        <td>${changed ? "✏ 변경" : "동일"}${f.exifDate ? " · EXIF " + formatDate(f.exifDate) : ""}</td>
+      `;
+      tbody.appendChild(tr);
+    }
+  }
+
+  // Root-rename notice
+  const hasRootTarget = plan.some(p => p.isRoot);
+  $("rootRenameNotice").classList.toggle("hidden", !hasRootTarget);
+}
+
+// ---------- Destination ----------
+document.querySelectorAll('input[name="dest"]').forEach(r => {
+  r.onchange = () => {
+    destMode = r.value;
+    $("destPicker").classList.toggle("hidden", destMode !== "copy");
+  };
+});
+$("pickDestBtn").onclick = async () => {
+  try {
+    destHandle = await window.showDirectoryPicker({ mode: "readwrite" });
+    $("destPath").textContent = "📂 " + destHandle.name;
+  } catch (e) {
+    if (e.name !== "AbortError") console.error(e);
+  }
+};
+$("backToInput").onclick = () => {
+  if (plan.some(p => p.needsName || p.needsDate)) { renderInputStep(); showSection("stepInput"); }
+  else showSection("stepInput") || renderInputStep();
+};
+
+// ---------- Execute ----------
+$("execute").onclick = async () => {
+  if (destMode === "copy" && !destHandle) {
+    alert("출력 폴더를 선택해주세요.");
+    return;
+  }
+  $("execute").disabled = true;
+  const report = { ok: 0, fail: 0, msgs: [] };
+  try {
+    if (destMode === "inplace") {
+      await executeInplace(report);
+    } else {
+      await executeCopy(report);
+    }
+  } catch (e) {
+    console.error(e);
+    report.msgs.push(`<span class="fail">치명적 오류: ${esc(e.message)}</span>`);
+  }
+  renderReport(report);
+  showSection("stepDone");
+};
+
+async function executeInplace(report) {
+  for (const p of plan) {
+    // 1) Rename files within the folder (2-phase to avoid collisions)
+    const tempNames = [];
+    for (let i = 0; i < p.files.length; i++) {
+      const f = p.files[i];
+      if (f.name === f.newName) { tempNames.push(null); continue; }
+      const tmp = `__tmp_${Date.now()}_${i}__${f.newName}`;
+      try {
+        await f.handle.move(p.handle, tmp);
+        tempNames.push(tmp);
+      } catch (e) {
+        report.fail++;
+        report.msgs.push(`<span class="fail">파일 이동 실패: ${esc(f.name)} → ${esc(e.message)}</span>`);
+        tempNames.push(null);
+      }
+    }
+    for (let i = 0; i < p.files.length; i++) {
+      const f = p.files[i];
+      if (!tempNames[i]) continue;
+      try {
+        await f.handle.move(p.handle, f.newName);
+        report.ok++;
+      } catch (e) {
+        report.fail++;
+        report.msgs.push(`<span class="fail">파일 이름 확정 실패: ${esc(f.name)} → ${esc(e.message)}</span>`);
+      }
+    }
+    // 2) Rename folder (skip root — cannot rename picked root)
+    if (!p.isRoot && p.parent && p.originalName !== p.newFolderName) {
+      try {
+        await p.handle.move(p.parent, p.newFolderName);
+        report.ok++;
+      } catch (e) {
+        report.fail++;
+        report.msgs.push(`<span class="fail">폴더 이름 변경 실패: ${esc(p.originalName)} → ${esc(e.message)}</span>`);
+      }
+    }
+  }
+}
+
+async function executeCopy(report) {
+  for (const p of plan) {
+    let target;
+    try {
+      target = await destHandle.getDirectoryHandle(p.newFolderName, { create: true });
+    } catch (e) {
+      report.fail++;
+      report.msgs.push(`<span class="fail">폴더 생성 실패: ${esc(p.newFolderName)} → ${esc(e.message)}</span>`);
+      continue;
+    }
+    for (const f of p.files) {
+      try {
+        const src = await f.handle.getFile();
+        const dst = await target.getFileHandle(f.newName, { create: true });
+        const w = await dst.createWritable();
+        await w.write(src);
+        await w.close();
+        report.ok++;
+      } catch (e) {
+        report.fail++;
+        report.msgs.push(`<span class="fail">복사 실패: ${esc(f.name)} → ${esc(e.message)}</span>`);
+      }
+    }
+  }
+}
+
+function renderReport(report) {
+  $("report").innerHTML = `
+    <p><span class="ok">✅ 성공: ${report.ok}건</span></p>
+    <p><span class="fail">❌ 실패: ${report.fail}건</span></p>
+    ${report.msgs.length ? `<details><summary>상세 로그</summary>${report.msgs.join("<br>")}</details>` : ""}
+  `;
+}
+
+// ---------- Reset ----------
+$("reset").onclick = () => {
+  rootHandle = null; plan = []; destHandle = null; destMode = "inplace";
+  document.querySelector('input[name="dest"][value="inplace"]').checked = true;
+  $("destPicker").classList.add("hidden");
+  $("rootPath").textContent = "";
+  $("destPath").textContent = "";
+  $("execute").disabled = false;
+  showSection("stepPick");
+};
+</script>
+</body>
+</html>
