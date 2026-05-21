@@ -11,5 +11,10 @@ Thumbs.db
 .vscode/
 .idea/
 
-# Local backup
+# Local backup / superseded
 file_renamer_old.html
+file_renamer.html
+README.txt
+
+# Claude Code local settings
+.claude/

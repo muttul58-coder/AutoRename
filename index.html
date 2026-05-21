@@ -18,12 +18,24 @@
   *{box-sizing:border-box}
   html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
     font-family:"Malgun Gothic","Apple SD Gothic Neo","Segoe UI",sans-serif;font-size:14px;}
+
+  /* Scrollbar — theme aware */
+  *{scrollbar-color:var(--surface2) var(--bg2);scrollbar-width:thin}
+  ::-webkit-scrollbar{width:12px;height:12px}
+  ::-webkit-scrollbar-track{background:var(--bg2)}
+  ::-webkit-scrollbar-thumb{background:var(--surface2);border-radius:6px;
+    border:3px solid var(--bg2)}
+  ::-webkit-scrollbar-thumb:hover{background:var(--accent)}
+  ::-webkit-scrollbar-corner{background:var(--bg2)}
   .app{max-width:1100px;margin:0 auto;padding:18px 24px 60px}
   header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
   h1{margin:0;color:var(--accent);font-size:22px}
   h2{color:var(--accent);font-size:16px;margin:18px 0 10px}
   .theme-toggle{background:var(--surface);color:var(--accent);border:1px solid var(--surface2);
-    border-radius:50%;width:38px;height:38px;font-size:18px;cursor:pointer}
+    border-radius:50%;width:38px;height:38px;font-size:18px;cursor:pointer;
+    display:inline-flex;align-items:center;justify-content:center;padding:0;line-height:1;
+    font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif}
+  .theme-toggle:hover{background:var(--surface2)}
   .banner{background:var(--yellow);color:#000;padding:10px 16px;border-radius:6px;
     margin-bottom:14px;font-size:13px;font-weight:600}
   .banner.error{background:var(--red);color:#fff}
@@ -93,9 +105,13 @@
   .modal table{width:100%;border-collapse:collapse;font-size:12px;margin:6px 0}
   .modal table th,.modal table td{border:1px solid var(--surface2);padding:6px 10px;text-align:left}
   .modal table th{background:var(--surface2);color:var(--accent)}
-  .modal .close{position:sticky;top:0;float:right;background:var(--surface);
+  .modal{position:relative}
+  .modal .close{position:absolute;top:14px;right:16px;background:var(--surface);
     border:1px solid var(--surface2);color:var(--text);border-radius:50%;
-    width:32px;height:32px;font-size:16px;cursor:pointer;margin-left:10px}
+    width:32px;height:32px;font-size:14px;cursor:pointer;
+    display:inline-flex;align-items:center;justify-content:center;padding:0;line-height:1;
+    font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif}
+  .modal .close:hover{background:var(--surface2)}
   .modal .tip{background:var(--surface);border-left:3px solid var(--yellow);
     padding:8px 12px;border-radius:4px;font-size:12px;color:var(--text);margin:8px 0}
 </style>
@@ -120,7 +136,7 @@
 
       <h3>1. 무엇을 해주나요?</h3>
       <ul>
-        <li>폴더 이름에서 <b>한글 부분</b>을 행사명으로 추출</li>
+        <li>폴더 이름에서 <b>한글·영문 부분</b>을 행사명으로 추출 (앞뒤 숫자·기호 제거)</li>
         <li>사진의 <b>EXIF 촬영 정보</b>를 읽어 가장 빠른 날짜를 추출</li>
         <li>폴더명·파일명을 통일된 규칙으로 한꺼번에 변경</li>
         <li>파일이 여러 장이면 촬영 순서대로 <b>_1, _2…</b> 연번 부여</li>
@@ -149,7 +165,7 @@
       <b>파일명</b> = <code>한글(YYYY.MM.DD.).확장자</code> (1장)<br>
       &nbsp;&nbsp;&nbsp;&nbsp;또는 <code>한글_연번(YYYY.MM.DD.).확장자</code> (여러 장)</p>
 
-      <p><b>한글 추출:</b> 폴더명의 <b>첫 한글 ~ 마지막 한글</b> 범위만 사용</p>
+      <p><b>이름 추출:</b> 폴더명의 <b>첫 한글/영문 글자 ~ 마지막 한글/영문 글자</b> 범위만 사용 (사이의 공백·숫자·기호는 유지, 앞뒤의 숫자·기호는 제거)</p>
       <p><b>날짜:</b> 폴더 안 사진의 EXIF 촬영일 중 <b>가장 빠른 날짜</b></p>
       <p><b>연번 순서:</b> EXIF 촬영일 오름차순 → 비이미지 파일은 뒤로</p>
 
@@ -162,6 +178,12 @@
       </div>
       <div class="ex">
         26.5.2. 봄소풍 1 <span class="arrow">→</span> <span class="out">봄소풍(2026.05.02.)</span>
+      </div>
+      <div class="ex">
+        2026 Spring Picnic <span class="arrow">→</span> <span class="out">Spring Picnic(2026.05.02.)</span>
+      </div>
+      <div class="ex">
+        K-pop 콘서트 2024 <span class="arrow">→</span> <span class="out">K-pop 콘서트(2024.10.10.)</span>
       </div>
       <div class="ex">
         IMG_0001.jpg, IMG_0002.jpg<br>
@@ -181,8 +203,8 @@
       <p><b>Q. 일부 사진의 날짜가 비어요.</b><br>
       A. EXIF 정보가 없는 사진(스크린샷, 편집된 사진 등)은 자동 추출이 안 됩니다. 입력 단계에서 직접 날짜를 지정해주세요.</p>
 
-      <p><b>Q. 한글이 없는 폴더는 어떻게 되나요?</b><br>
-      A. 입력 단계에서 한글 이름을 직접 입력하면 됩니다.</p>
+      <p><b>Q. 한글이나 영문이 없는 폴더는 어떻게 되나요?</b><br>
+      A. 폴더명이 숫자·기호로만 이루어져 있으면 자동 추출이 안 됩니다. 입력 단계에서 이름을 직접 입력하면 됩니다.</p>
 
       <p><b>Q. 실행 후 되돌릴 수 있나요?</b><br>
       A. 「원본 덮어쓰기」 모드는 되돌릴 수 없습니다. 걱정되면 「새 폴더에 복사」 모드를 사용하세요.</p>
@@ -289,11 +311,18 @@ let destHandle = null;
 // ---------- Utils ----------
 const $ = (id) => document.getElementById(id);
 
+// 첫 한글/영문 ~ 마지막 한글/영문 범위를 추출. 사이의 공백·숫자·기호는 유지.
 function extractKorean(s) {
   if (!s) return null;
-  const m = s.match(/[가-힣][가-힣\s]*[가-힣]|[가-힣]/);
-  if (!m) return null;
-  return m[0].replace(/\s+/g, " ").trim() || null;
+  const re = /[가-힣A-Za-z]/;
+  const first = s.search(re);
+  if (first === -1) return null;
+  let last = -1;
+  for (let i = s.length - 1; i >= 0; i--) {
+    if (re.test(s[i])) { last = i; break; }
+  }
+  const out = s.slice(first, last + 1).replace(/\s+/g, " ").trim();
+  return out || null;
 }
 
 function formatDate(d) {
