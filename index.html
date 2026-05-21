@@ -10,7 +10,7 @@
     --text:#cdd6f4; --muted:#a6adc8; --accent:#89b4fa;
     --green:#a6e3a1; --yellow:#f9e2af; --red:#f38ba8;
   }
-  body.light{
+  html.light, body.light{
     --bg:#eff1f5; --bg2:#e6e9ef; --surface:#ffffff; --surface2:#dce0e8;
     --text:#4c4f69; --muted:#6c6f85; --accent:#1e66f5;
     --green:#40a02b; --yellow:#df8e1d; --red:#d20f39;
@@ -397,12 +397,14 @@ document.addEventListener("keydown", e => {
 
 // ---------- Theme ----------
 $("themeToggle").onclick = () => {
-  document.body.classList.toggle("light");
-  $("themeToggle").textContent = document.body.classList.contains("light") ? "☀️" : "🌙";
-  localStorage.setItem("theme", document.body.classList.contains("light") ? "light" : "dark");
+  const isLight = document.body.classList.toggle("light");
+  document.documentElement.classList.toggle("light", isLight);
+  $("themeToggle").textContent = isLight ? "☀️" : "🌙";
+  localStorage.setItem("theme", isLight ? "light" : "dark");
 };
 if (localStorage.getItem("theme") === "light") {
   document.body.classList.add("light");
+  document.documentElement.classList.add("light");
   $("themeToggle").textContent = "☀️";
 }
 
