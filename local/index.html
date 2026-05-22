@@ -1,0 +1,1053 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>📁 파일명 일괄 변경기 (로컬)</title>
+<style>
+  :root{
+    --bg:#1e1e2e; --bg2:#181825; --surface:#313244; --surface2:#45475a;
+    --text:#eef0fb; --muted:#bac2de; --accent:#a6c4ff;
+    --green:#b8edaa; --yellow:#ffe9b1; --red:#ff95b0;
+  }
+  html.light, body.light{
+    --bg:#eff1f5; --bg2:#e6e9ef; --surface:#ffffff; --surface2:#dce0e8;
+    --text:#1e2030; --muted:#4a4d5e; --accent:#1e40af;
+    --green:#2d7a1f; --yellow:#a36b00; --red:#b8082c;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
+    font-family:"Pretendard Variable","Pretendard","Noto Sans KR","Segoe UI Variable","Segoe UI","맑은 고딕","Malgun Gothic","Apple SD Gothic Neo",sans-serif;
+    font-size:16px;
+    -webkit-font-smoothing:antialiased;
+    -moz-osx-font-smoothing:grayscale;
+    text-rendering:geometricPrecision;
+    font-feature-settings:"kern" 1, "liga" 1;
+    letter-spacing:0;}
+  *{scrollbar-color:var(--surface2) var(--bg2);scrollbar-width:thin}
+  ::-webkit-scrollbar{width:12px;height:12px}
+  ::-webkit-scrollbar-track{background:var(--bg2)}
+  ::-webkit-scrollbar-thumb{background:var(--surface2);border-radius:6px;border:3px solid var(--bg2)}
+  ::-webkit-scrollbar-thumb:hover{background:var(--accent)}
+  .app{max-width:1100px;margin:0 auto;padding:18px 24px 60px}
+  header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+  h1{margin:0;color:var(--accent);font-size:22px}
+  h2{color:var(--accent);font-size:17px;margin:18px 0 10px}
+  .theme-toggle{background:var(--surface);color:var(--accent);border:1px solid var(--surface2);
+    border-radius:50%;width:38px;height:38px;font-size:18px;cursor:pointer;
+    display:inline-flex;align-items:center;justify-content:center;padding:0;line-height:1}
+  .theme-toggle:hover{background:var(--surface2)}
+  .tabs{display:flex;gap:2px;border-bottom:2px solid var(--surface2);margin-bottom:16px}
+  .tab{background:transparent;color:var(--muted);border:none;border-bottom:2px solid transparent;
+    border-radius:0;padding:10px 18px;font-size:14px;font-weight:600;cursor:pointer;
+    margin-bottom:-2px;transition:.15s}
+  .tab:hover{background:var(--surface);color:var(--text)}
+  .tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+  .pattern-help{display:flex;flex-wrap:wrap;gap:4px 12px;
+    margin-top:10px;font-size:13px;color:var(--muted)}
+  .pattern-help code{background:var(--surface2);color:var(--yellow);padding:1px 5px;border-radius:3px;font-size:13px;margin-right:4px}
+  #manualRuleBox code{font-size:14px;font-weight:bold;background:var(--surface2);color:var(--yellow);padding:2px 6px;border-radius:3px;font-family:"Cascadia Mono","Consolas","D2Coding",monospace}
+  .dropzone{background:var(--surface);border:2px dashed var(--accent);border-radius:10px;
+    padding:36px;text-align:center;font-weight:bold;cursor:pointer;transition:.15s}
+  .dropzone:hover,.dropzone.drag{background:var(--surface2)}
+  .dropzone small{display:block;color:var(--muted);font-weight:normal;margin-top:8px;font-size:13px}
+  .pathbar{color:var(--accent);font-size:13px;margin:8px 0;word-break:break-all;min-height:18px;
+    font-family:Consolas,monospace}
+  button{background:var(--surface);color:var(--text);border:1px solid var(--surface2);
+    border-radius:6px;padding:9px 16px;font-size:14px;font-weight:600;cursor:pointer}
+  button:hover{background:var(--surface2)}
+  button.primary{background:var(--accent);color:var(--bg);border-color:var(--accent)}
+  button.primary:hover{background:var(--green);border-color:var(--green)}
+  button:disabled{opacity:.4;cursor:not-allowed}
+  input[type=text],input[type=date]{background:var(--surface);color:var(--text);
+    border:1px solid var(--surface2);border-radius:6px;padding:8px 10px;font-size:14px;outline:none}
+  input[type=text]:focus,input[type=date]:focus{border-color:var(--accent)}
+  .summary{display:flex;gap:14px;flex-wrap:wrap;margin:10px 0}
+  .summary .chip{background:var(--surface);border:1px solid var(--surface2);border-radius:20px;padding:6px 12px;font-size:13px}
+  .summary .chip b{color:var(--accent)}
+  .input-card{background:var(--surface);border:1px solid var(--surface2);border-radius:8px;padding:14px;margin-bottom:10px}
+  .input-card .orig{color:var(--muted);font-size:13px;margin-bottom:8px;word-break:break-all}
+  .input-card .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .input-card label{font-size:13px;color:var(--muted)}
+  .table-wrap{background:var(--surface);border-radius:8px;overflow:auto;max-height:520px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  thead{position:sticky;top:0;background:var(--surface2);z-index:1}
+  th,td{padding:7px 10px;text-align:left;border-bottom:1px solid var(--bg2);white-space:nowrap;vertical-align:top}
+  th{color:var(--accent);font-weight:600}
+  tr.folder td{background:var(--surface2);color:var(--accent);font-weight:bold}
+  tr.folder .folder-toggle{cursor:pointer;display:inline-block;width:16px;text-align:center;
+    color:var(--accent);user-select:none;margin-right:4px;font-size:11px}
+  tr.folder .folder-toggle:hover{color:var(--green)}
+  tr.folder .file-count{color:var(--muted);font-weight:normal;font-size:12px;margin-left:6px}
+  tr.file-hidden{display:none}
+  tr.folder.needs-date td{background:var(--yellow);color:#000}
+  tr.folder.needs-date td input[type=date]{background:#fff;color:#000;
+    border:1px solid #b08400}
+  tr.folder td input[type=date]{font-size:13px;padding:3px 6px;
+    background:var(--surface);color:var(--text);
+    border:1px solid var(--surface2);border-radius:4px}
+  tr.changed td.new{color:var(--yellow)}
+  tr.same td{color:var(--muted)}
+  .summary .chip.warn{background:var(--yellow);color:#000;font-weight:600}
+  fieldset{border:1px solid var(--surface2);border-radius:8px;padding:12px 16px;margin:14px 0}
+  legend{color:var(--accent);padding:0 6px;font-size:14px;font-weight:600}
+  fieldset label{display:inline-flex;align-items:center;gap:6px;margin-right:18px;font-size:14px;cursor:pointer}
+  .actions{display:flex;gap:10px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap}
+  .report{background:var(--surface);border-radius:8px;padding:14px;font-size:14px;line-height:1.6}
+  .report .ok{color:var(--green)}
+  .report .fail{color:var(--red)}
+  .hidden{display:none !important}
+  .muted{color:var(--muted);font-size:13px}
+  .spinner{display:inline-block;width:14px;height:14px;border:2px solid var(--surface2);
+    border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;
+    vertical-align:middle;margin-right:8px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .badge-local{background:var(--green);color:var(--bg);font-size:11px;padding:2px 6px;
+    border-radius:4px;margin-left:8px;vertical-align:middle;font-weight:700}
+
+  /* Help modal */
+  .modal-back{position:fixed;inset:0;background:rgba(0,0,0,.65);display:flex;
+    align-items:center;justify-content:center;z-index:100;padding:20px}
+  .modal{background:var(--bg);border:1px solid var(--surface2);border-radius:12px;
+    max-width:760px;width:100%;max-height:90vh;overflow:auto;padding:24px 28px;
+    box-shadow:0 12px 40px rgba(0,0,0,.5);position:relative}
+  .modal h2{margin-top:0}
+  .modal h3{color:var(--accent);font-size:15px;margin:18px 0 8px;border-bottom:1px solid var(--surface2);padding-bottom:4px}
+  .modal p,.modal li{font-size:14px;line-height:1.7;color:var(--text)}
+  .modal ol,.modal ul{padding-left:22px;margin:6px 0}
+  .modal code{background:var(--surface);color:var(--yellow);padding:2px 6px;border-radius:4px;font-size:13px}
+  .modal .ex{background:var(--surface);border-left:3px solid var(--accent);padding:8px 12px;
+    margin:6px 0;font-size:13px;font-family:Consolas,monospace;border-radius:4px;line-height:1.7}
+  .modal .ex .arrow{color:var(--muted);margin:0 8px}
+  .modal .ex .out{color:var(--green)}
+  .modal table{width:100%;border-collapse:collapse;font-size:13px;margin:6px 0}
+  .modal table th,.modal table td{border:1px solid var(--surface2);padding:6px 10px;text-align:left}
+  .modal table th{background:var(--surface2);color:var(--accent)}
+  .modal .close{position:absolute;top:14px;right:16px;background:var(--surface);
+    border:1px solid var(--surface2);color:var(--text);border-radius:50%;
+    width:32px;height:32px;font-size:15px;cursor:pointer;
+    display:inline-flex;align-items:center;justify-content:center;padding:0;line-height:1;
+    font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif}
+  .modal .close:hover{background:var(--surface2)}
+  .modal .tip{background:var(--surface);border-left:3px solid var(--yellow);
+    padding:8px 12px;border-radius:4px;font-size:13px;color:var(--text);margin:8px 0}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <h1>📁 파일명 일괄 변경기<span class="badge-local">LOCAL</span></h1>
+    <div style="display:flex;gap:8px">
+      <button class="theme-toggle" id="helpBtn" title="도움말">❓</button>
+      <button class="theme-toggle" id="themeToggle" title="테마">🌙</button>
+    </div>
+  </header>
+
+  <!-- HELP MODAL -->
+  <div id="helpModal" class="modal-back hidden">
+    <div class="modal">
+      <button class="close" id="helpClose" title="닫기">✕</button>
+      <h2>📖 도움말</h2>
+
+      <h3>1. 무엇을 해주나요?</h3>
+      <ul>
+        <li>폴더 이름에서 <b>한글·영문 부분</b>을 행사명으로 추출 (앞뒤 숫자·기호 제거)</li>
+        <li>사진의 <b>EXIF 촬영 정보</b>를 읽어 가장 빠른 날짜를 추출</li>
+        <li>폴더명·파일명을 통일된 규칙으로 한꺼번에 변경</li>
+        <li>파일이 여러 장이면 촬영 순서대로 <b>_1, _2…</b> 연번 부여</li>
+      </ul>
+
+      <h3>2. 사용 순서</h3>
+      <ol>
+        <li><b>폴더 선택</b> — 사진이 들어있는 폴더(또는 여러 행사 폴더가 든 상위 폴더)를 선택</li>
+        <li><b>자동 분석</b> — 한글 추출과 EXIF 스캔이 자동 진행됩니다 (사진이 많으면 시간이 걸려요)</li>
+        <li><b>입력 필요 항목 채우기</b> — 한글이 없거나 EXIF 날짜가 없는 폴더만 직접 입력</li>
+        <li><b>미리보기 확인</b> — 변경 전/후를 표로 비교, 폴더명·날짜 직접 편집 가능</li>
+        <li><b>저장 위치 선택</b> — 원본 덮어쓰기 또는 새 폴더에 복사</li>
+        <li><b>변경 실행</b> 버튼 클릭 → 완료 후 결과 폴더 바로 열기 가능</li>
+      </ol>
+
+      <h3>3. 폴더 구조 (자동 인식)</h3>
+      <table>
+        <tr><th>입력 폴더 안에…</th><th>처리 방식</th></tr>
+        <tr><td>파일만 있음</td><td>선택한 폴더 1개를 행사 폴더로 처리</td></tr>
+        <tr><td>하위 폴더만 있음</td><td>각 하위 폴더를 행사 폴더로 처리</td></tr>
+        <tr><td>둘 다 섞여 있음</td><td>현재 폴더 + 각 하위 폴더 모두 처리</td></tr>
+      </table>
+
+      <h3>4. ⚙ 자동 규칙</h3>
+      <p><b>폴더명</b> = <code>한글(YYYY.MM.DD.)</code><br>
+      <b>파일명</b> = <code>한글(YYYY.MM.DD.).확장자</code> (1장)<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;또는 <code>한글_연번(YYYY.MM.DD.).확장자</code> (여러 장)</p>
+
+      <p><b>이름 추출:</b> 폴더명의 <b>첫 한글/영문 글자 ~ 마지막 한글/영문 글자</b> 범위만 사용 (사이의 공백·숫자·기호는 유지, 앞뒤의 숫자·기호는 제거)</p>
+      <p><b>날짜 추출 우선순위:</b></p>
+      <ol>
+        <li>폴더에 <b>사진이 있으면</b> → 사진의 EXIF 촬영일 중 가장 빠른 날짜 사용 (영상은 무시)</li>
+        <li>폴더에 <b>사진이 없고 영상만 있으면</b> → 영상의 mvhd 촬영일 사용 (mp4, mov, m4v 등)</li>
+        <li>위 둘 다 실패하면 → 사용자에게 직접 입력 요청 또는 미리보기에서 직접 입력</li>
+      </ol>
+
+      <h3>5. 변환 예시</h3>
+      <div class="ex">
+        2026_저녁 노을 사진 01 <span class="arrow">→</span> <span class="out">저녁 노을 사진(2026.05.02.)</span>
+      </div>
+      <div class="ex">
+        0502 운동회 <span class="arrow">→</span> <span class="out">운동회(2026.05.02.)</span>
+      </div>
+      <div class="ex">
+        26.5.2. 봄소풍 1 <span class="arrow">→</span> <span class="out">봄소풍(2026.05.02.)</span>
+      </div>
+      <div class="ex">
+        IMG_0001.jpg, IMG_0002.jpg<br>
+        <span class="arrow">→</span> <span class="out">저녁 노을 사진_1(2026.05.02.).jpg</span><br>
+        <span class="arrow">→</span> <span class="out">저녁 노을 사진_2(2026.05.02.).jpg</span>
+      </div>
+
+      <h3>6. ✏ 수동 규칙 모드</h3>
+      <p>상단의 <b>「수동 규칙」</b> 탭에서는 <b>파일명 패턴</b>을 직접 정의할 수 있습니다. 폴더명은 그 패턴에서 카운터(<code>_%c</code>)를 자동으로 뺀 형식으로 같이 적용됩니다.</p>
+      <table>
+        <tr><th>코드</th><th>의미</th><th>예시</th></tr>
+        <tr><td><code>%y</code></td><td>년 (4자리)</td><td>2026</td></tr>
+        <tr><td><code>%m</code></td><td>월 (2자리)</td><td>05</td></tr>
+        <tr><td><code>%d</code></td><td>일 (2자리)</td><td>22</td></tr>
+        <tr><td><code>%h</code></td><td>시 (2자리)</td><td>14</td></tr>
+        <tr><td><code>%n</code></td><td>분 (2자리)</td><td>30</td></tr>
+        <tr><td><code>%s</code></td><td>초 (2자리)</td><td>05</td></tr>
+        <tr><td><code>%c</code> / <code>%cc</code> / <code>%ccc</code></td><td>폴더별 번호 (자릿수)</td><td>1 / 01 / 001</td></tr>
+        <tr><td><code>%t</code></td><td>유닉스 타임스탬프</td><td>1747890605</td></tr>
+        <tr><td><code>%f</code></td><td>추출된 한글 폴더명</td><td>추억여행</td></tr>
+      </table>
+      <div class="tip">
+        날짜·시간은 사진의 <b>EXIF 촬영일</b>(없으면 <b>파일 수정일</b>) 기준입니다.
+        미리보기에서 폴더별로 날짜·폴더명을 직접 편집할 수 있고, 편집한 값은 패턴이 바뀌어도 유지됩니다.
+      </div>
+      <p><b>패턴 예시:</b></p>
+      <div class="ex">%f_%ccc(%y.%m.%d.) <span class="arrow">→</span> 폴더: <span class="out">추억여행(2026.05.05.)</span><br>
+        <span class="arrow">→</span> 파일: <span class="out">추억여행_001(2026.05.05.).jpg</span>
+      </div>
+      <div class="ex">(%y.%m.%d.)%f_%ccc <span class="arrow">→</span> 폴더: <span class="out">(2026.05.05.)추억여행</span><br>
+        <span class="arrow">→</span> 파일: <span class="out">(2026.05.05.)추억여행_001.jpg</span>
+      </div>
+      <div class="ex">photo_%y%m%d_%h%n%s <span class="arrow">→</span> <span class="out">photo_20260522_143005.jpg</span></div>
+
+      <h3>7. 저장 위치</h3>
+      <ul>
+        <li><b>원본 폴더에 덮어쓰기</b> — 빠르고 디스크 공간 절약. 원본 파일이 그 자리에서 이름만 바뀝니다. 최상위 폴더 이름까지 변경됩니다.</li>
+        <li><b>새 폴더에 복사</b> — 원본 보존. 새로 지정한 폴더에 변경된 이름으로 복사본 생성.</li>
+      </ul>
+
+      <h3>8. 자주 묻는 질문</h3>
+      <p><b>Q. 일부 사진의 날짜가 비어요.</b><br>
+      A. EXIF 정보가 없는 사진(스크린샷, 편집된 사진 등)은 자동 추출이 안 됩니다. 미리보기에서 폴더별 날짜 input으로 직접 지정해주세요.</p>
+
+      <p><b>Q. 한글이나 영문이 없는 폴더는 어떻게 되나요?</b><br>
+      A. 폴더명이 숫자·기호로만 이루어져 있으면 자동 추출이 안 됩니다. 입력 단계에서 이름을 직접 입력하거나, 미리보기 폴더명을 직접 편집하면 됩니다.</p>
+
+      <p><b>Q. 실행 후 되돌릴 수 있나요?</b><br>
+      A. 「원본 덮어쓰기」 모드는 되돌릴 수 없습니다. 걱정되면 「새 폴더에 복사」 모드를 사용하세요.</p>
+
+      <h3>9. 🔒 개인정보·보안</h3>
+      <div class="tip">
+        <b>이 도구는 사진을 인터넷에 업로드하지 않습니다.</b> 모든 처리는 사용자 PC 안에서만 일어납니다.
+      </div>
+      <ul>
+        <li><b>완전 로컬 처리</b> — Python의 <code>os</code>/<code>shutil</code>·<code>Pillow</code> 모듈을 사용해 사용자 PC 내에서만 파일을 다룹니다.</li>
+        <li><b>서버 전송 없음</b> — 사진·파일·EXIF 정보 어느 것도 외부로 전송되지 않습니다.</li>
+        <li><b>인터넷 불필요</b> — 최초 설치(.venv 의존성 설치) 외에는 오프라인에서도 동작합니다. <code>.exe</code> 빌드 후엔 Python도 필요 없습니다.</li>
+      </ul>
+
+      <h3>10. 안전 팁</h3>
+      <div class="tip">처음 사용하실 때는 <b>테스트용 폴더</b>로 한 번 돌려본 뒤 본 작업을 진행하세요. 중요한 자료는 작업 전 <b>백업</b>을 권장합니다.</div>
+
+      <div class="actions">
+        <button id="helpCloseBottom" class="primary">닫기</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="apiWarning" class="hidden" style="background:var(--red);color:#fff;padding:10px 16px;border-radius:6px;margin-bottom:14px">
+    ⚠️ Python API에 연결되지 않았습니다. run.bat으로 실행해주세요.
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs" id="modeTabs">
+    <button class="tab active" data-mode="auto">⚙ 자동 규칙</button>
+    <button class="tab" data-mode="manual">✏ 수동 규칙</button>
+  </div>
+
+  <!-- 수동 규칙 패턴 입력 (탭 전환 시 표시, 모든 단계에서 유지) -->
+  <div id="manualRuleBox" class="input-card hidden" style="margin-bottom:14px;font-size:15px">
+    <label style="display:block;margin-bottom:6px;color:var(--muted);font-size:14px">파일명 패턴을 입력하세요.</label>
+    <input type="text" id="manualPattern" value="%f_%ccc(%y.%m.%d.)" style="width:100%;font-size:15px">
+    <div style="margin-top:8px;display:flex;align-items:center;gap:8px;font-size:15px">
+      <span style="color:var(--muted)">📄 파일명 미리보기:</span>
+      <code id="manualPatternPreview" style="background:var(--surface2);color:var(--yellow);padding:3px 10px;border-radius:4px;font-size:15px;font-weight:600"></code>
+    </div>
+    <div class="pattern-help" style="font-size:14px">
+      <span><code>%y</code>년 <code>%m</code>월 <code>%d</code>일</span>
+      <span><code>%h</code>시 <code>%n</code>분 <code>%s</code>초</span>
+      <span><code>%c</code>/<code>%cc</code>/<code>%ccc</code>번호 <code>%t</code>유닉스 타임 <code>%f</code>폴더명</span>
+    </div>
+    <div style="margin-top:8px;font-size:14px;color:var(--muted)">
+      ※ 날짜·시간은 사진의 EXIF 촬영일(없으면 파일 수정일) 기준입니다. 미리보기에서 폴더별로 날짜를 직접 입력할 수도 있습니다.<br>
+      <code>%c</code>=1, <code>%cc</code>=01, <code>%ccc</code>=001 — 폴더별로 1부터 매겨지는 번호입니다.<br>
+      <code>%f</code>는 추출된 한글 폴더명. 폴더명은 파일명 패턴에서 카운터(<code>_%c</code>)를 뺀 형식으로 자동 적용되며, 미리보기에서 직접 편집하면 그 값이 유지됩니다.
+    </div>
+  </div>
+
+  <!-- STEP 1: Pick -->
+  <section id="stepPick">
+    <div id="dropzone" class="dropzone">
+      📂 폴더를 여기에 드래그하거나 클릭해서 선택
+      <small>선택한 폴더 안의 파일 또는 하위 폴더를 자동 분석합니다</small>
+    </div>
+    <div id="rootPath" class="pathbar"></div>
+  </section>
+
+  <!-- STEP 2: Analyzing -->
+  <section id="stepAnalyzing" class="hidden">
+    <p><span class="spinner"></span>EXIF 스캔 및 자동 분석 중...</p>
+    <p id="analyzeProgress" class="muted"></p>
+  </section>
+
+  <!-- STEP 3: Input -->
+  <section id="stepInput" class="hidden">
+    <h2>⚠ 자동 추출 실패 — 입력이 필요합니다</h2>
+    <p class="muted">아래 폴더는 한글 이름 또는 날짜를 자동으로 찾지 못했습니다. 직접 입력해주세요.</p>
+    <div id="inputList"></div>
+    <div class="actions">
+      <button id="inputDone" class="primary">완료 → 미리보기</button>
+    </div>
+  </section>
+
+  <!-- STEP 4: Preview -->
+  <section id="stepPreview" class="hidden">
+    <h2>미리보기</h2>
+    <div id="summary" class="summary"></div>
+    <div class="table-wrap"><table id="previewTable">
+      <thead><tr><th>변경 전</th><th>변경 후</th><th>날짜</th><th>비고</th></tr></thead>
+      <tbody></tbody>
+    </table></div>
+
+    <fieldset>
+      <legend>저장 위치</legend>
+      <label><input type="radio" name="dest" value="inplace" checked> 원본 폴더에 덮어쓰기 (이름만 변경)</label>
+      <label><input type="radio" name="dest" value="copy"> 새 폴더에 복사 (원본 보존)</label>
+      <div id="destPicker" class="hidden" style="margin-top:10px">
+        <button id="pickDestBtn">📁 출력 폴더 선택</button>
+        <div id="destPath" class="pathbar"></div>
+      </div>
+    </fieldset>
+
+    <div class="actions">
+      <button id="backBtn">← 뒤로</button>
+      <button id="execute" class="primary">✅ 변경 실행</button>
+    </div>
+  </section>
+
+  <!-- STEP 5: Done -->
+  <section id="stepDone" class="hidden">
+    <h2>완료</h2>
+    <div id="report" class="report"></div>
+    <div id="outputPathInfo" class="pathbar"></div>
+    <div class="actions">
+      <button id="openFolderBtn">📂 결과 폴더 열기</button>
+      <button id="reset" class="primary">🔄 다시 시작</button>
+    </div>
+  </section>
+
+</div>
+
+<script>
+"use strict";
+
+/* ============================================================
+ * 파일명 일괄 변경기 — 로컬 버전
+ * pywebview API: window.pywebview.api
+ * ============================================================ */
+
+const IMAGE_EXT = /\.(jpe?g|tiff?|heic|heif|png|webp|cr2|nef|arw|dng)$/i;
+const VIDEO_EXT = /\.(mp4|mov|m4v|3gp|3g2)$/i;
+
+let rootPath = null;
+let plan = [];
+let destMode = "inplace";
+let destPath = null;
+let ruleMode = "auto";
+let lastOutputPath = null;
+
+const $ = (id) => document.getElementById(id);
+const api = () => window.pywebview && window.pywebview.api;
+
+function showSection(id) {
+  ["stepPick","stepAnalyzing","stepInput","stepPreview","stepDone"]
+    .forEach(s => $(s).classList.toggle("hidden", s !== id));
+}
+
+function esc(s) {
+  return String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+
+function pad2(n) { return String(n).padStart(2, "0"); }
+
+function updateManualPatternPreview() {
+  const el = $("manualPatternPreview");
+  if (!el) return;
+  const pattern = $("manualPattern").value;
+  if (!pattern.trim()) { el.textContent = "(패턴을 입력하세요)"; return; }
+  el.textContent = applyManualPattern(pattern, new Date(), 1, "추억여행") + ".jpg";
+}
+
+function extractKorean(s) {
+  if (!s) return null;
+  const re = /[가-힣A-Za-z]/;
+  const first = s.search(re);
+  if (first === -1) return null;
+  let last = -1;
+  for (let i = s.length - 1; i >= 0; i--) {
+    if (re.test(s[i])) { last = i; break; }
+  }
+  const out = s.slice(first, last + 1).replace(/\s+/g, " ").trim();
+  return out || null;
+}
+
+function formatDate(d) {
+  if (!(d instanceof Date) || isNaN(d)) return null;
+  return `${d.getFullYear()}.${pad2(d.getMonth()+1)}.${pad2(d.getDate())}.`;
+}
+
+function parseDateInput(v) {
+  if (!v) return null;
+  const d = new Date(v);
+  return isNaN(d) ? null : d;
+}
+
+function splitExt(name) {
+  const m = name.match(/^(.*?)(\.[^.]+)?$/);
+  return { base: m[1] || name, ext: m[2] || "" };
+}
+
+function basename(path) {
+  return path.replace(/[/\\]+$/, "").split(/[/\\]/).pop();
+}
+
+function joinPath(...parts) {
+  return parts.filter(Boolean).join("\\").replace(/\\+/g, "\\");
+}
+
+// ---------- Tabs ----------
+document.querySelectorAll("#modeTabs .tab").forEach(btn => {
+  btn.onclick = () => {
+    if (btn.classList.contains("active")) return;
+    document.querySelectorAll("#modeTabs .tab").forEach(b => b.classList.toggle("active", b === btn));
+    ruleMode = btn.dataset.mode;
+    $("manualRuleBox").classList.toggle("hidden", ruleMode !== "manual");
+    if (ruleMode === "manual") updateManualPatternPreview();
+    resetState();
+  };
+});
+
+$("manualPattern").addEventListener("input", updateManualPatternPreview);
+updateManualPatternPreview();
+
+// 미리보기 단계에서 패턴 변경 시 전체 재계산 (디바운스)
+let _patternRerenderTimer = null;
+$("manualPattern").addEventListener("input", () => {
+  if (ruleMode !== "manual") return;
+  if ($("stepPreview").classList.contains("hidden")) return;
+  clearTimeout(_patternRerenderTimer);
+  _patternRerenderTimer = setTimeout(async () => {
+    for (const p of plan) {
+      if (!p.folderNameEdited) p.newFolderName = generateFolderNameFromPattern(p);
+      await applyManualToFolder(p);
+    }
+    renderPreview();
+  }, 200);
+});
+
+// ---------- Help modal ----------
+$("helpBtn").onclick = () => $("helpModal").classList.remove("hidden");
+$("helpClose").onclick = () => $("helpModal").classList.add("hidden");
+$("helpCloseBottom").onclick = () => $("helpModal").classList.add("hidden");
+$("helpModal").addEventListener("click", e => {
+  if (e.target.id === "helpModal") $("helpModal").classList.add("hidden");
+});
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape") $("helpModal").classList.add("hidden");
+});
+
+// ---------- Theme ----------
+$("themeToggle").onclick = () => {
+  const isLight = document.body.classList.toggle("light");
+  document.documentElement.classList.toggle("light", isLight);
+  $("themeToggle").textContent = isLight ? "☀️" : "🌙";
+  localStorage.setItem("theme", isLight ? "light" : "dark");
+};
+if (localStorage.getItem("theme") === "light") {
+  document.body.classList.add("light");
+  document.documentElement.classList.add("light");
+  $("themeToggle").textContent = "☀️";
+}
+
+// ---------- API ready check ----------
+window.addEventListener("pywebviewready", () => {
+  $("apiWarning").classList.add("hidden");
+});
+setTimeout(() => {
+  if (!api()) $("apiWarning").classList.remove("hidden");
+}, 1500);
+
+// ---------- Manual pattern ----------
+function applyManualPattern(pattern, date, counter, folderName) {
+  const d = (date instanceof Date && !isNaN(date)) ? date : new Date();
+  return pattern.replace(/%(c+|[ymdhnstf])/g, tok => {
+    if (tok[1] === "c") {
+      // counter가 null/undefined면 %c 토큰을 제거 (폴더명 생성용)
+      if (counter == null) return "";
+      return String(counter).padStart(tok.length - 1, "0");
+    }
+    switch (tok) {
+      case "%y": return String(d.getFullYear());
+      case "%m": return pad2(d.getMonth() + 1);
+      case "%d": return pad2(d.getDate());
+      case "%h": return pad2(d.getHours());
+      case "%n": return pad2(d.getMinutes());
+      case "%s": return pad2(d.getSeconds());
+      case "%t": return String(Math.floor(d.getTime() / 1000));
+      case "%f": return folderName || "";
+      default: return tok;
+    }
+  });
+}
+
+// 폴더명 생성: 패턴에서 %c 제거 후 적용 + 잉여 공백/구분자 정리
+function generateFolderNameFromPattern(p) {
+  const pattern = $("manualPattern").value.trim();
+  if (!pattern) return p.koreanName || p.originalName;
+  const date = (p.date instanceof Date) ? p.date : new Date();
+  const fName = p.koreanName || p.originalName;
+  // "_%c+" 또는 " %c+" 형태(공백/언더스코어 + 카운터)를 통째로 제거 → 폴더명 패턴
+  const folderPattern = pattern.replace(/[\s_]*%c+/g, "");
+  let name = applyManualPattern(folderPattern, date, null, fName);
+  // 연속 공백/언더스코어 정리, 앞뒤 trim
+  name = name.replace(/[\s_]{2,}/g, m => m[0]).replace(/^[\s_]+|[\s_]+$/g, "");
+  return name || p.koreanName || p.originalName;
+}
+
+function ensureUnique(name, ext, used) {
+  let candidate = name + ext;
+  if (!used.has(candidate)) { used.add(candidate); return candidate; }
+  let i = 1;
+  while (used.has(`${name}_${i}${ext}`)) i++;
+  candidate = `${name}_${i}${ext}`;
+  used.add(candidate);
+  return candidate;
+}
+
+// ---------- Pick folder ----------
+$("dropzone").onclick = pickFolder;
+
+async function pickFolder() {
+  if (!api()) { alert("Python API에 연결되지 않았습니다."); return; }
+  const path = await api().pick_folder();
+  if (!path) return;
+  await useFolderPath(path);
+}
+
+async function useFolderPath(path) {
+  rootPath = path;
+  $("rootPath").textContent = "📂 " + path;
+  await startAnalyze();
+}
+
+// ---------- Drag & drop (Python pywebview에서 경로를 추출하여 useFolderPath 호출) ----------
+$("dropzone").addEventListener("dragover", e => {
+  e.preventDefault();
+  $("dropzone").classList.add("drag");
+});
+$("dropzone").addEventListener("dragleave", () => $("dropzone").classList.remove("drag"));
+$("dropzone").addEventListener("drop", () => $("dropzone").classList.remove("drag"));
+
+async function startAnalyze() {
+  if (ruleMode === "manual" && !$("manualPattern").value.trim()) {
+    alert("파일명 패턴을 입력해주세요.");
+    return;
+  }
+  showSection("stepAnalyzing");
+  $("analyzeProgress").textContent = "";
+  try {
+    await buildPlan();
+    if (ruleMode === "manual") {
+      await finalizePlanAndPreview();
+    } else if (plan.some(p => p.needsName || p.needsDate)) {
+      renderInputStep();
+      showSection("stepInput");
+    } else {
+      await finalizePlanAndPreview();
+    }
+  } catch (e) {
+    console.error(e);
+    alert("분석 중 오류: " + e.message);
+    showSection("stepPick");
+  }
+}
+
+// ---------- Build plan ----------
+async function buildPlan() {
+  plan = [];
+  const entries = await api().list_dir(rootPath);
+  if (entries.error) throw new Error(entries.error);
+
+  const rootFiles = entries.filter(e => !e.is_dir);
+  const subDirs = entries.filter(e => e.is_dir);
+
+  if (rootFiles.length > 0) {
+    plan.push(await analyzeTarget(rootPath, basename(rootPath), rootFiles, true));
+  }
+  for (const sd of subDirs) {
+    const subEntries = await api().list_dir(sd.path);
+    if (subEntries.error) continue;
+    const subFiles = subEntries.filter(e => !e.is_dir);
+    plan.push(await analyzeTarget(sd.path, sd.name, subFiles, false));
+  }
+
+  if (plan.length === 0) throw new Error("선택한 폴더에 파일이나 하위 폴더가 없습니다.");
+}
+
+async function analyzeTarget(dirPath, name, files, isRoot) {
+  const koreanName = extractKorean(name);
+
+  const images = files.filter(f => IMAGE_EXT.test(f.name));
+  const videos = files.filter(f => VIDEO_EXT.test(f.name));
+  const others = files.filter(f => !IMAGE_EXT.test(f.name) && !VIDEO_EXT.test(f.name));
+
+  let minDate = null;
+  const fileInfo = [];
+
+  // 이미지 EXIF
+  for (let i = 0; i < images.length; i++) {
+    $("analyzeProgress").textContent = `[${name}] 사진 EXIF ${i+1}/${images.length}`;
+    const res = await api().get_file_date(images[i].path);
+    let d = null;
+    if (res && res.date && res.source === "exif") {
+      d = new Date(res.date);
+      if (!isNaN(d) && (!minDate || d < minDate)) minDate = d;
+    } else {
+      d = null;
+    }
+    fileInfo.push({ ...images[i], exifDate: d });
+  }
+
+  // 영상 (이미지 없을 때만 minDate 후보)
+  for (let i = 0; i < videos.length; i++) {
+    $("analyzeProgress").textContent = `[${name}] 영상 메타 ${i+1}/${videos.length}`;
+    let d = null;
+    if (images.length === 0) {
+      const res = await api().get_file_date(videos[i].path);
+      if (res && res.date && res.source === "video") {
+        d = new Date(res.date);
+        if (!isNaN(d) && (!minDate || d < minDate)) minDate = d;
+      }
+    }
+    fileInfo.push({ ...videos[i], exifDate: null, videoDate: d });
+  }
+
+  for (const o of others) fileInfo.push({ ...o, exifDate: null });
+
+  return {
+    path: dirPath,
+    originalName: name,
+    isRoot,
+    koreanName,
+    date: minDate,
+    files: fileInfo,
+    needsName: !koreanName,
+    needsDate: !minDate,
+  };
+}
+
+// ---------- Input step ----------
+function renderInputStep() {
+  const list = $("inputList");
+  list.innerHTML = "";
+  plan.forEach((p, i) => {
+    if (!p.needsName && !p.needsDate) return;
+    const card = document.createElement("div");
+    card.className = "input-card";
+    card.innerHTML = `
+      <div class="orig">📁 ${esc(p.originalName)}${p.isRoot ? " (최상위)" : ""}</div>
+      <div class="row">
+        ${p.needsName ? `
+          <label>폴더명(한글):
+            <input type="text" data-idx="${i}" data-field="name"
+              placeholder="예: 저녁 노을 사진" value="${esc(p.koreanName || "")}">
+          </label>` : `<span class="muted">한글: <b>${esc(p.koreanName)}</b></span>`}
+        ${p.needsDate ? `
+          <label>날짜:
+            <input type="date" data-idx="${i}" data-field="date">
+          </label>` : `<span class="muted">날짜: <b>${formatDate(p.date)}</b></span>`}
+      </div>
+    `;
+    list.appendChild(card);
+  });
+}
+
+$("inputDone").onclick = async () => {
+  document.querySelectorAll("#inputList input").forEach(inp => {
+    const i = +inp.dataset.idx;
+    const f = inp.dataset.field;
+    if (f === "name") {
+      const v = extractKorean(inp.value.trim()) || inp.value.trim();
+      if (v) { plan[i].koreanName = v; plan[i].needsName = false; }
+    } else if (f === "date") {
+      const d = parseDateInput(inp.value);
+      if (d) { plan[i].date = d; plan[i].needsDate = false; }
+    }
+  });
+  const missing = plan.filter(p => p.needsName || p.needsDate);
+  if (missing.length) { alert(`${missing.length}개 폴더에 미입력 항목이 있습니다.`); return; }
+  await finalizePlanAndPreview();
+};
+
+// ---------- Compute new names ----------
+async function computeNewNames() {
+  if (ruleMode === "manual") await computeNewNamesManual();
+  else computeNewNamesAuto();
+}
+
+function computeNewNamesAuto() {
+  for (const p of plan) {
+    const dateStr = formatDate(p.date);
+    p.newFolderName = `${p.koreanName}(${dateStr})`;
+    const images = p.files.filter(f => f.exifDate).sort((a,b) => a.exifDate - b.exifDate);
+    const others = p.files.filter(f => !f.exifDate).sort((a,b) => a.name.localeCompare(b.name, "ko"));
+    const sorted = [...images, ...others];
+    if (sorted.length === 1) {
+      const { ext } = splitExt(sorted[0].name);
+      sorted[0].newName = `${p.koreanName}(${dateStr})${ext}`;
+    } else {
+      sorted.forEach((f, i) => {
+        const { ext } = splitExt(f.name);
+        f.newName = `${p.koreanName}_${i+1}(${dateStr})${ext}`;
+      });
+    }
+    p.files = sorted;
+  }
+}
+
+async function computeNewNamesManual() {
+  for (const p of plan) {
+    // 사용자가 직접 편집하지 않은 경우 패턴으로 자동 생성
+    if (!p.folderNameEdited) p.newFolderName = generateFolderNameFromPattern(p);
+    const images = p.files.filter(f => f.exifDate).sort((a,b) => a.exifDate - b.exifDate);
+    const others = p.files.filter(f => !f.exifDate).sort((a,b) => a.name.localeCompare(b.name, "ko"));
+    p.files = [...images, ...others];
+    await applyManualToFolder(p);
+  }
+}
+
+async function resolveFileDate(f, p) {
+  // 폴더에 사용자가 날짜를 직접 입력했으면 그 날짜로 모든 파일 통일
+  if (p && p.dateUserSet && p.date instanceof Date) return p.date;
+  // 기본: EXIF → mtime → 현재시간
+  if (f.exifDate) return new Date(f.exifDate);
+  if (f.mtime) return new Date(f.mtime * 1000);
+  const res = await api().get_file_date(f.path);
+  return res && res.date ? new Date(res.date) : new Date();
+}
+
+// 폴더 1개에 대해서만 파일명 재계산 (폴더명 편집 시 호출)
+async function applyManualToFolder(p) {
+  const pattern = $("manualPattern").value.trim();
+  const hasCounter = /%c/.test(pattern);
+  const used = new Set();
+  // %f는 한글 추출 결과 우선, 없으면 새 폴더명/원본 폴더명
+  const fName = p.koreanName || p.newFolderName || p.originalName;
+  for (let i = 0; i < p.files.length; i++) {
+    const f = p.files[i];
+    const date = await resolveFileDate(f, p);
+    const { ext } = splitExt(f.name);
+    const base = applyManualPattern(pattern, date, i + 1, fName);
+    f.newName = hasCounter ? base + ext : ensureUnique(base, ext, used);
+  }
+}
+
+// ---------- Preview ----------
+async function finalizePlanAndPreview() {
+  await computeNewNames();
+  renderPreview();
+  showSection("stepPreview");
+}
+
+function dateToInputValue(d) {
+  if (!(d instanceof Date) || isNaN(d)) return "";
+  return `${d.getFullYear()}-${pad2(d.getMonth()+1)}-${pad2(d.getDate())}`;
+}
+
+function renderPreview() {
+  const totalFolders = plan.length;
+  const totalFiles = plan.reduce((s,p) => s + p.files.length, 0);
+  const missingDate = plan.filter(p => !(p.date instanceof Date)).length;
+  const warnHtml = missingDate
+    ? `<span class="chip warn">⚠ 날짜 미확인 폴더 <b>${missingDate}</b> — 아래 표에서 직접 입력해 주세요</span>`
+    : "";
+  $("summary").innerHTML = `
+    <span class="chip">대상 폴더 <b>${totalFolders}</b></span>
+    <span class="chip">총 파일 <b>${totalFiles}</b></span>
+    ${warnHtml}
+  `;
+  const tbody = $("previewTable").querySelector("tbody");
+  tbody.innerHTML = "";
+  plan.forEach((p, pIdx) => {
+    const folderUnchanged = p.originalName === p.newFolderName;
+    const needsDate = !(p.date instanceof Date);
+    const trF = document.createElement("tr");
+    trF.className = "folder" + (needsDate ? " needs-date" : "");
+    const newFolderCell = ruleMode === "manual"
+      ? `<input type="text" class="folder-name-input" data-plan-idx="${pIdx}" value="${esc(p.newFolderName)}" style="width:100%;background:var(--bg2);color:var(--accent);border:1px solid var(--surface2);border-radius:4px;padding:4px 6px;font-weight:bold">`
+      : esc(p.newFolderName);
+    const dateInputHtml = `<input type="date" class="folder-date-input" data-plan-idx="${pIdx}" value="${dateToInputValue(p.date)}">`;
+    trF.dataset.planIdx = pIdx;
+    trF.innerHTML = `
+      <td><span class="folder-toggle" data-plan-idx="${pIdx}" title="펼치기/접기">▼</span>${esc(p.originalName)}${p.isRoot ? " <small>(최상위)</small>" : ""}<span class="file-count">(${p.files.length}개)</span></td>
+      <td>${newFolderCell}</td>
+      <td>${dateInputHtml}</td>
+      <td>${folderUnchanged ? "변경 없음" : "📁 폴더 변경"}</td>
+    `;
+    tbody.appendChild(trF);
+    for (const f of p.files) {
+      const tr = document.createElement("tr");
+      const changed = f.name !== f.newName;
+      tr.className = changed ? "changed" : "same";
+      tr.dataset.planIdx = pIdx;
+      tr.innerHTML = `
+        <td>${esc(f.name)}</td>
+        <td class="new">${esc(f.newName)}</td>
+        <td colspan="2">${changed ? "✏ 변경" : "동일"}${f.exifDate ? " · EXIF " + formatDate(f.exifDate) : ""}</td>
+      `;
+      tbody.appendChild(tr);
+    }
+  });
+
+  if (ruleMode === "manual") {
+    tbody.querySelectorAll(".folder-name-input").forEach(inp => {
+      inp.addEventListener("input", onFolderNameEdit);
+    });
+  }
+  tbody.querySelectorAll(".folder-date-input").forEach(inp => {
+    inp.addEventListener("change", onFolderDateEdit);
+  });
+  tbody.querySelectorAll(".folder-toggle").forEach(btn => {
+    btn.addEventListener("click", onFolderToggle);
+  });
+}
+
+function onFolderToggle(e) {
+  e.stopPropagation();
+  const span = e.currentTarget;
+  const idx = span.dataset.planIdx;
+  const tbody = $("previewTable").querySelector("tbody");
+  const fileRows = tbody.querySelectorAll(`tr[data-plan-idx="${idx}"]:not(.folder)`);
+  const isCollapsed = span.textContent === "▶";
+  fileRows.forEach(tr => tr.classList.toggle("file-hidden", !isCollapsed));
+  span.textContent = isCollapsed ? "▼" : "▶";
+}
+
+async function onFolderDateEdit(e) {
+  const inp = e.target;
+  const idx = +inp.dataset.planIdx;
+  const p = plan[idx];
+  if (!p) return;
+  const d = parseDateInput(inp.value);
+  if (d) {
+    p.date = d;
+    p.dateUserSet = true;
+    p.needsDate = false;
+  } else {
+    p.date = null;
+    p.dateUserSet = false;
+  }
+  if (ruleMode === "manual") {
+    if (!p.folderNameEdited) p.newFolderName = generateFolderNameFromPattern(p);
+    await applyManualToFolder(p);
+  } else {
+    // 자동 모드: 폴더명/파일명 재계산
+    await computeNewNames();
+  }
+  renderPreview();
+}
+
+let _folderEditTimer = null;
+async function onFolderNameEdit(e) {
+  const inp = e.target;
+  const idx = +inp.dataset.planIdx;
+  const p = plan[idx];
+  if (!p) return;
+  p.newFolderName = inp.value;
+  p.folderNameEdited = true; // 이후 패턴 변경 시 자동 덮어쓰기 방지
+
+  // 디바운스 — 빠른 타이핑 중 매번 재계산 방지
+  clearTimeout(_folderEditTimer);
+  _folderEditTimer = setTimeout(async () => {
+    await applyManualToFolder(p);
+    // 해당 폴더의 파일 행들만 다시 그림
+    refreshFolderRows(idx);
+  }, 120);
+}
+
+function refreshFolderRows(pIdx) {
+  const p = plan[pIdx];
+  if (!p) return;
+  const tbody = $("previewTable").querySelector("tbody");
+  const rows = tbody.querySelectorAll(`tr[data-plan-idx="${pIdx}"]`);
+  rows.forEach((tr, i) => {
+    const f = p.files[i];
+    if (!f) return;
+    const changed = f.name !== f.newName;
+    tr.className = changed ? "changed" : "same";
+    tr.children[1].textContent = f.newName;
+    tr.children[2].textContent = (changed ? "✏ 변경" : "동일") + (f.exifDate ? " · EXIF " + formatDate(f.exifDate) : "");
+  });
+  // 폴더 행의 "변경 없음/폴더 변경" 표시 갱신 (4번째 셀)
+  const folderRow = tbody.querySelector(`tr.folder:has(input.folder-name-input[data-plan-idx="${pIdx}"])`);
+  if (folderRow) {
+    const unchanged = p.originalName === p.newFolderName;
+    folderRow.children[3].textContent = unchanged ? "변경 없음" : "📁 폴더 변경";
+  }
+}
+
+// ---------- Destination ----------
+document.querySelectorAll('input[name="dest"]').forEach(r => {
+  r.onchange = () => {
+    destMode = r.value;
+    $("destPicker").classList.toggle("hidden", destMode !== "copy");
+  };
+});
+$("pickDestBtn").onclick = async () => {
+  if (!api()) return;
+  const path = await api().pick_dest_folder();
+  if (!path) return;
+  destPath = path;
+  $("destPath").textContent = "📂 " + path;
+};
+$("backBtn").onclick = () => showSection("stepPick");
+
+// ---------- Execute ----------
+$("execute").onclick = async () => {
+  if (destMode === "copy" && !destPath) { alert("출력 폴더를 선택해주세요."); return; }
+  $("execute").disabled = true;
+  const report = { ok: 0, fail: 0, msgs: [] };
+  try {
+    if (destMode === "inplace") {
+      await executeInplace(report);
+      lastOutputPath = rootPath;
+    } else {
+      await executeCopy(report);
+      lastOutputPath = destPath;
+    }
+  } catch (e) {
+    console.error(e);
+    report.msgs.push(`<span class="fail">치명적 오류: ${esc(e.message)}</span>`);
+  }
+  renderReport(report);
+  $("outputPathInfo").textContent = lastOutputPath ? "📂 " + lastOutputPath : "";
+  showSection("stepDone");
+};
+
+async function executeInplace(report) {
+  // 1단계: 모든 폴더의 파일명을 임시 이름 → 최종 이름으로 변경 (충돌 방지)
+  for (const p of plan) {
+    const temps = [];
+    for (let i = 0; i < p.files.length; i++) {
+      const f = p.files[i];
+      if (f.name === f.newName) { temps.push(null); continue; }
+      const tmp = `__tmp_${Date.now()}_${i}__${f.newName}`;
+      const tmpPath = joinPath(p.path, tmp);
+      const res = await api().rename(f.path, tmpPath);
+      if (res.ok) { temps.push({ tmpPath, finalName: f.newName }); }
+      else { report.fail++; report.msgs.push(`<span class="fail">파일 이동 실패: ${esc(f.name)} → ${esc(res.error)}</span>`); temps.push(null); }
+    }
+    for (const t of temps) {
+      if (!t) continue;
+      const finalPath = joinPath(p.path, t.finalName);
+      const res = await api().rename(t.tmpPath, finalPath);
+      if (res.ok) report.ok++;
+      else { report.fail++; report.msgs.push(`<span class="fail">파일 이름 확정 실패: ${esc(t.finalName)} → ${esc(res.error)}</span>`); }
+    }
+  }
+
+  // 2단계: 폴더 이름 변경 — 자식 폴더 먼저, root는 마지막
+  // (root 먼저 바꾸면 자식들의 p.path가 깨지므로)
+  const nonRoots = plan.filter(p => !p.isRoot);
+  const roots = plan.filter(p => p.isRoot);
+  const folderOrder = [...nonRoots, ...roots];
+
+  for (const p of folderOrder) {
+    if (p.originalName === p.newFolderName) continue;
+    const parent = p.path.replace(/[/\\][^/\\]+$/, "");
+    const newPath = joinPath(parent, p.newFolderName);
+    const res = await api().rename(p.path, newPath);
+    if (res.ok) {
+      report.ok++;
+      const oldPath = p.path;
+      p.path = newPath;
+      if (p.isRoot) {
+        // root rename: 모든 자식 plan의 p.path 접두사 갱신
+        rootPath = newPath;
+        for (const child of plan) {
+          if (child !== p && child.path.startsWith(oldPath + "\\")) {
+            child.path = newPath + child.path.slice(oldPath.length);
+          }
+        }
+      }
+    }
+    else { report.fail++; report.msgs.push(`<span class="fail">폴더 이름 변경 실패: ${esc(p.originalName)} → ${esc(res.error)}</span>`); }
+  }
+}
+
+async function executeCopy(report) {
+  for (const p of plan) {
+    const targetDir = joinPath(destPath, p.newFolderName);
+    const mk = await api().make_dir(targetDir);
+    if (!mk.ok) { report.fail++; report.msgs.push(`<span class="fail">폴더 생성 실패: ${esc(p.newFolderName)} → ${esc(mk.error)}</span>`); continue; }
+    for (const f of p.files) {
+      const dst = joinPath(targetDir, f.newName);
+      const res = await api().copy_file(f.path, dst);
+      if (res.ok) report.ok++;
+      else { report.fail++; report.msgs.push(`<span class="fail">복사 실패: ${esc(f.name)} → ${esc(res.error)}</span>`); }
+    }
+  }
+}
+
+function renderReport(report) {
+  $("report").innerHTML = `
+    <p><span class="ok">✅ 성공: ${report.ok}건</span></p>
+    <p><span class="fail">❌ 실패: ${report.fail}건</span></p>
+    ${report.msgs.length ? `<details><summary>상세 로그</summary>${report.msgs.join("<br>")}</details>` : ""}
+  `;
+}
+
+// ---------- Open folder ----------
+$("openFolderBtn").onclick = async () => {
+  if (!lastOutputPath || !api()) return;
+  const res = await api().open_folder(lastOutputPath);
+  if (!res.ok) alert("폴더 열기 실패: " + res.error);
+};
+
+// ---------- Reset ----------
+function resetState() {
+  rootPath = null; plan = []; destPath = null; destMode = "inplace"; lastOutputPath = null;
+  document.querySelector('input[name="dest"][value="inplace"]').checked = true;
+  $("destPicker").classList.add("hidden");
+  $("rootPath").textContent = "";
+  $("destPath").textContent = "";
+  $("outputPathInfo").textContent = "";
+  $("execute").disabled = false;
+  showSection("stepPick");
+}
+$("reset").onclick = resetState;
+</script>
+</body>
+</html>

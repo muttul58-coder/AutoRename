@@ -17,7 +17,7 @@
   }
   *{box-sizing:border-box}
   html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
-    font-family:"Malgun Gothic","Apple SD Gothic Neo","Segoe UI",sans-serif;font-size:14px;}
+    font-family:"Malgun Gothic","Apple SD Gothic Neo","Segoe UI",sans-serif;font-size:15px;}
 
   /* Scrollbar — theme aware */
   *{scrollbar-color:var(--surface2) var(--bg2);scrollbar-width:thin}
@@ -30,58 +30,80 @@
   .app{max-width:1100px;margin:0 auto;padding:18px 24px 60px}
   header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
   h1{margin:0;color:var(--accent);font-size:22px}
-  h2{color:var(--accent);font-size:16px;margin:18px 0 10px}
+  h2{color:var(--accent);font-size:17px;margin:18px 0 10px}
   .theme-toggle{background:var(--surface);color:var(--accent);border:1px solid var(--surface2);
     border-radius:50%;width:38px;height:38px;font-size:18px;cursor:pointer;
     display:inline-flex;align-items:center;justify-content:center;padding:0;line-height:1;
     font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif}
   .theme-toggle:hover{background:var(--surface2)}
+  .tabs{display:flex;gap:2px;border-bottom:2px solid var(--surface2);margin-bottom:16px}
+  .tab{background:transparent;color:var(--muted);border:none;border-bottom:2px solid transparent;
+    border-radius:0;padding:10px 18px;font-size:14px;font-weight:600;cursor:pointer;
+    margin-bottom:-2px;transition:.15s}
+  .tab:hover{background:var(--surface);color:var(--text)}
+  .tab.active{color:var(--accent);border-bottom-color:var(--accent);background:transparent}
+  .pattern-help{display:flex;flex-wrap:wrap;gap:4px 12px;
+    margin-top:10px;font-size:13px;color:var(--muted)}
+  .pattern-help code{background:var(--surface2);color:var(--yellow);padding:1px 5px;
+    border-radius:3px;font-size:12px;margin-right:4px}
   .banner{background:var(--yellow);color:#000;padding:10px 16px;border-radius:6px;
-    margin-bottom:14px;font-size:13px;font-weight:600}
+    margin-bottom:14px;font-size:14px;font-weight:600}
   .banner.error{background:var(--red);color:#fff}
   .dropzone{background:var(--surface);border:2px dashed var(--accent);border-radius:10px;
     padding:36px;text-align:center;font-weight:bold;cursor:pointer;transition:.15s}
   .dropzone:hover,.dropzone.drag{background:var(--surface2)}
-  .dropzone small{display:block;color:var(--muted);font-weight:normal;margin-top:8px;font-size:12px}
-  .pathbar{color:var(--accent);font-size:12px;margin:8px 0;word-break:break-all;min-height:18px}
+  .dropzone small{display:block;color:var(--muted);font-weight:normal;margin-top:8px;font-size:13px}
+  .pathbar{color:var(--accent);font-size:13px;margin:8px 0;word-break:break-all;min-height:18px}
   button{background:var(--surface);color:var(--text);border:1px solid var(--surface2);
-    border-radius:6px;padding:9px 16px;font-size:13px;font-weight:600;cursor:pointer}
+    border-radius:6px;padding:9px 16px;font-size:14px;font-weight:600;cursor:pointer}
   button:hover{background:var(--surface2)}
   button.primary{background:var(--accent);color:var(--bg);border-color:var(--accent)}
   button.primary:hover{background:var(--green);border-color:var(--green)}
   button:disabled{opacity:.4;cursor:not-allowed}
   input[type=text],input[type=date]{background:var(--surface);color:var(--text);
-    border:1px solid var(--surface2);border-radius:6px;padding:8px 10px;font-size:13px;outline:none}
+    border:1px solid var(--surface2);border-radius:6px;padding:8px 10px;font-size:14px;outline:none}
   input[type=text]:focus,input[type=date]:focus{border-color:var(--accent)}
   .summary{display:flex;gap:14px;flex-wrap:wrap;margin:10px 0}
   .summary .chip{background:var(--surface);border:1px solid var(--surface2);
-    border-radius:20px;padding:6px 12px;font-size:12px}
+    border-radius:20px;padding:6px 12px;font-size:13px}
   .summary .chip b{color:var(--accent)}
   .summary .chip.warn b{color:var(--yellow)}
   .input-card{background:var(--surface);border:1px solid var(--surface2);
     border-radius:8px;padding:14px;margin-bottom:10px}
-  .input-card .orig{color:var(--muted);font-size:12px;margin-bottom:8px;word-break:break-all}
+  .input-card .orig{color:var(--muted);font-size:13px;margin-bottom:8px;word-break:break-all}
   .input-card .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-  .input-card label{font-size:12px;color:var(--muted)}
+  .input-card label{font-size:13px;color:var(--muted)}
   .table-wrap{background:var(--surface);border-radius:8px;overflow:auto;max-height:520px}
-  table{width:100%;border-collapse:collapse;font-size:12px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
   thead{position:sticky;top:0;background:var(--surface2);z-index:1}
   th,td{padding:7px 10px;text-align:left;border-bottom:1px solid var(--bg2);
     white-space:nowrap;vertical-align:top}
   th{color:var(--accent);font-weight:600}
   tr.folder td{background:var(--surface2);color:var(--accent);font-weight:bold}
+  tr.folder .folder-toggle{cursor:pointer;display:inline-block;width:16px;text-align:center;
+    color:var(--accent);user-select:none;margin-right:4px;font-size:11px}
+  tr.folder .folder-toggle:hover{color:var(--green)}
+  tr.folder .file-count{color:var(--muted);font-weight:normal;font-size:12px;margin-left:6px}
+  tr.file-hidden{display:none}
+  tr.folder.needs-date td{background:var(--yellow);color:#000}
+  tr.folder.needs-date td input[type=date]{background:#fff;color:#000;
+    border:1px solid #b08400}
+  tr.folder td input[type=date]{font-size:13px;padding:3px 6px;
+    background:var(--surface);color:var(--text);
+    border:1px solid var(--surface2);border-radius:4px}
   tr.changed td.new{color:var(--yellow)}
   tr.same td{color:var(--muted)}
+  .summary .chip.warn{background:var(--yellow);color:#000;font-weight:600}
   tr.error td{color:var(--red)}
   fieldset{border:1px solid var(--surface2);border-radius:8px;padding:12px 16px;margin:14px 0}
-  legend{color:var(--accent);padding:0 6px;font-size:13px;font-weight:600}
-  fieldset label{display:inline-flex;align-items:center;gap:6px;margin-right:18px;font-size:13px;cursor:pointer}
+  legend{color:var(--accent);padding:0 6px;font-size:14px;font-weight:600}
+  fieldset label{display:inline-flex;align-items:center;gap:6px;margin-right:18px;font-size:14px;cursor:pointer}
   .actions{display:flex;gap:10px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap}
-  .report{background:var(--surface);border-radius:8px;padding:14px;font-size:13px;line-height:1.6}
+  .report{background:var(--surface);border-radius:8px;padding:14px;font-size:14px;line-height:1.6}
   .report .ok{color:var(--green)}
   .report .fail{color:var(--red)}
   .hidden{display:none !important}
-  .muted{color:var(--muted);font-size:12px}
+  .muted{color:var(--muted);font-size:13px}
   .spinner{display:inline-block;width:14px;height:14px;border:2px solid var(--surface2);
     border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;
     vertical-align:middle;margin-right:8px}
@@ -94,26 +116,26 @@
     max-width:760px;width:100%;max-height:90vh;overflow:auto;padding:24px 28px;
     box-shadow:0 12px 40px rgba(0,0,0,.5)}
   .modal h2{margin-top:0}
-  .modal h3{color:var(--accent);font-size:14px;margin:18px 0 8px;border-bottom:1px solid var(--surface2);padding-bottom:4px}
-  .modal p,.modal li{font-size:13px;line-height:1.7;color:var(--text)}
+  .modal h3{color:var(--accent);font-size:15px;margin:18px 0 8px;border-bottom:1px solid var(--surface2);padding-bottom:4px}
+  .modal p,.modal li{font-size:14px;line-height:1.7;color:var(--text)}
   .modal ol,.modal ul{padding-left:22px;margin:6px 0}
-  .modal code{background:var(--surface);color:var(--yellow);padding:2px 6px;border-radius:4px;font-size:12px}
+  .modal code{background:var(--surface);color:var(--yellow);padding:2px 6px;border-radius:4px;font-size:13px}
   .modal .ex{background:var(--surface);border-left:3px solid var(--accent);padding:8px 12px;
-    margin:6px 0;font-size:12px;font-family:Consolas,monospace;border-radius:4px;line-height:1.7}
+    margin:6px 0;font-size:13px;font-family:Consolas,monospace;border-radius:4px;line-height:1.7}
   .modal .ex .arrow{color:var(--muted);margin:0 8px}
   .modal .ex .out{color:var(--green)}
-  .modal table{width:100%;border-collapse:collapse;font-size:12px;margin:6px 0}
+  .modal table{width:100%;border-collapse:collapse;font-size:13px;margin:6px 0}
   .modal table th,.modal table td{border:1px solid var(--surface2);padding:6px 10px;text-align:left}
   .modal table th{background:var(--surface2);color:var(--accent)}
   .modal{position:relative}
   .modal .close{position:absolute;top:14px;right:16px;background:var(--surface);
     border:1px solid var(--surface2);color:var(--text);border-radius:50%;
-    width:32px;height:32px;font-size:14px;cursor:pointer;
+    width:32px;height:32px;font-size:15px;cursor:pointer;
     display:inline-flex;align-items:center;justify-content:center;padding:0;line-height:1;
     font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif}
   .modal .close:hover{background:var(--surface2)}
   .modal .tip{background:var(--surface);border-left:3px solid var(--yellow);
-    padding:8px 12px;border-radius:4px;font-size:12px;color:var(--text);margin:8px 0}
+    padding:8px 12px;border-radius:4px;font-size:13px;color:var(--text);margin:8px 0}
 </style>
 </head>
 <body>
@@ -132,7 +154,6 @@
     <div class="modal">
       <button class="close" id="helpClose" title="닫기">✕</button>
       <h2>📖 도움말</h2>
-      <p class="muted">이 도구는 폴더 안의 사진·파일 이름을 <b>「행사명(촬영일자)」</b> 형식으로 자동 정리해줍니다.</p>
 
       <h3>1. 무엇을 해주나요?</h3>
       <ul>
@@ -218,7 +239,29 @@
       <p><b>Q. Firefox나 Safari에서 안 돼요.</b><br>
       A. File System Access API는 현재 <b>Chrome / Edge</b>에서만 지원됩니다.</p>
 
-      <h3>8. 🔒 개인정보·보안</h3>
+      <h3>8. ✏ 수동 규칙 모드</h3>
+      <p>상단의 <b>「수동 규칙」</b> 탭에서는 파일명 패턴을 직접 정의할 수 있습니다. 폴더명은 변경하지 않고 파일명만 일괄 변경됩니다.</p>
+      <table>
+        <tr><th>코드</th><th>의미</th><th>예시</th></tr>
+        <tr><td><code>%y</code></td><td>년 (4자리)</td><td>2026</td></tr>
+        <tr><td><code>%m</code></td><td>월 (2자리)</td><td>05</td></tr>
+        <tr><td><code>%d</code></td><td>일 (2자리)</td><td>22</td></tr>
+        <tr><td><code>%h</code></td><td>시 (2자리)</td><td>14</td></tr>
+        <tr><td><code>%n</code></td><td>분 (2자리)</td><td>30</td></tr>
+        <tr><td><code>%s</code></td><td>초 (2자리)</td><td>05</td></tr>
+        <tr><td><code>%c</code></td><td>폴더별 번호 (1부터)</td><td>1, 2, 3…</td></tr>
+        <tr><td><code>%t</code></td><td>유닉스 타임스탬프</td><td>1747890605</td></tr>
+      </table>
+      <div class="tip">
+        날짜·시간은 사진의 <b>EXIF 촬영일</b>을 기준으로 합니다. EXIF가 없는 파일(영상·문서 등)은 <b>파일 수정일</b>을 사용합니다.
+        <br><code>%c</code>가 패턴에 없으면, 같은 이름이 충돌할 경우 자동으로 <code>_1</code>, <code>_2</code>가 붙습니다.
+      </div>
+      <p><b>패턴 예시:</b></p>
+      <div class="ex">이미지 %c <span class="arrow">→</span> <span class="out">이미지 1.jpg, 이미지 2.jpg, …</span></div>
+      <div class="ex">%y-%m-%d_%c <span class="arrow">→</span> <span class="out">2026-05-22_1.jpg, 2026-05-22_2.jpg, …</span></div>
+      <div class="ex">photo_%y%m%d_%h%n%s <span class="arrow">→</span> <span class="out">photo_20260522_143005.jpg</span></div>
+
+      <h3>9. 🔒 개인정보·보안</h3>
       <div class="tip">
         <b>이 도구는 사진을 인터넷에 업로드하지 않습니다.</b> 모든 처리는 사용자 PC 안에서만 일어납니다.
       </div>
@@ -232,7 +275,7 @@
       </ul>
       <p class="muted">개발자 도구(F12) → Network 탭을 열어두고 작업하면 외부로 어떤 데이터도 전송되지 않는 것을 직접 확인하실 수 있습니다.</p>
 
-      <h3>9. 안전 팁</h3>
+      <h3>10. 안전 팁</h3>
       <div class="tip">처음 사용하실 때는 <b>테스트용 폴더</b>로 한 번 돌려본 뒤 본 작업을 진행하세요. 중요한 자료는 작업 전 <b>백업</b>을 권장합니다.</div>
 
       <div class="actions">
@@ -245,8 +288,34 @@
     ⚠️ 이 도구는 <b>Chrome</b> 또는 <b>Edge</b> 브라우저에서만 작동합니다.
   </div>
 
+  <!-- TABS -->
+  <div class="tabs" id="modeTabs">
+    <button class="tab active" data-mode="auto">⚙ 자동 규칙</button>
+    <button class="tab" data-mode="manual">✏ 수동 규칙</button>
+  </div>
+
   <!-- STEP 1: Pick -->
   <section id="stepPick">
+    <!-- 수동 규칙 패턴 입력 -->
+    <div id="manualRuleBox" class="input-card hidden" style="margin-bottom:14px">
+      <label class="muted" style="display:block;margin-bottom:6px">파일명 패턴을 입력하세요.</label>
+      <input type="text" id="manualPattern" value="%f_%ccc(%y.%m.%d.)" style="width:100%">
+      <div style="margin-top:8px;display:flex;align-items:center;gap:8px;font-size:14px">
+        <span style="color:var(--muted)">📄 파일명 미리보기:</span>
+        <code id="manualPatternPreview" style="background:var(--surface2);color:var(--yellow);padding:3px 10px;border-radius:4px;font-size:14px;font-weight:600"></code>
+      </div>
+      <div class="pattern-help">
+        <span><code>%y</code>년 <code>%m</code>월 <code>%d</code>일</span>
+        <span><code>%h</code>시 <code>%n</code>분 <code>%s</code>초</span>
+        <span><code>%c</code>/<code>%cc</code>/<code>%ccc</code>번호 <code>%t</code>유닉스 타임 <code>%f</code>폴더명</span>
+      </div>
+      <div class="muted" style="margin-top:8px;font-size:13px">
+        ※ 날짜·시간은 사진의 EXIF 촬영일(없으면 파일 수정일) 기준입니다.<br>
+        <code>%c</code>=1, <code>%cc</code>=01, <code>%ccc</code>=001 — 폴더별로 1부터 매겨지는 번호입니다.<br>
+        <code>%f</code>는 추출된 한글 폴더명. 폴더명은 파일명 패턴에서 카운터(<code>_%c</code>)를 뺀 형식으로 자동 적용됩니다.
+      </div>
+    </div>
+
     <div id="dropzone" class="dropzone">
       📂 폴더를 여기에 드래그하거나 클릭해 선택
       <small>선택한 폴더 안의 파일 또는 하위 폴더를 자동 분석합니다</small>
@@ -275,7 +344,7 @@
     <h2>미리보기</h2>
     <div id="summary" class="summary"></div>
     <div class="table-wrap"><table id="previewTable">
-      <thead><tr><th>변경 전</th><th>변경 후</th><th>비고</th></tr></thead>
+      <thead><tr><th>변경 전</th><th>변경 후</th><th>날짜</th><th>비고</th></tr></thead>
       <tbody></tbody>
     </table></div>
 
@@ -329,6 +398,7 @@ let rootHandle = null;
 let plan = []; // [{handle, parent, originalName, koreanName, date, files:[{name,handle,exifDate,newName}], needsName, needsDate, isRoot}]
 let destMode = "inplace";
 let destHandle = null;
+let ruleMode = "auto"; // "auto" | "manual"
 
 // ---------- Utils ----------
 const $ = (id) => document.getElementById(id);
@@ -408,6 +478,89 @@ if (localStorage.getItem("theme") === "light") {
   $("themeToggle").textContent = "☀️";
 }
 
+// ---------- Tabs ----------
+document.querySelectorAll("#modeTabs .tab").forEach(btn => {
+  btn.onclick = () => {
+    if (btn.classList.contains("active")) return;
+    document.querySelectorAll("#modeTabs .tab").forEach(b => b.classList.toggle("active", b === btn));
+    ruleMode = btn.dataset.mode;
+    $("manualRuleBox").classList.toggle("hidden", ruleMode !== "manual");
+    if (ruleMode === "manual") updateManualPatternPreview();
+    resetState();
+  };
+});
+
+// ---------- Manual pattern engine ----------
+function pad2(n) { return String(n).padStart(2, "0"); }
+
+function updateManualPatternPreview() {
+  const el = $("manualPatternPreview");
+  if (!el) return;
+  const pattern = $("manualPattern").value;
+  if (!pattern.trim()) { el.textContent = "(패턴을 입력하세요)"; return; }
+  el.textContent = applyManualPattern(pattern, new Date(), 1, "추억여행") + ".jpg";
+}
+$("manualPattern").addEventListener("input", updateManualPatternPreview);
+updateManualPatternPreview();
+
+// 미리보기 단계에서 패턴 변경 시 전체 재계산 (디바운스)
+let _patternRerenderTimer = null;
+$("manualPattern").addEventListener("input", () => {
+  if (ruleMode !== "manual") return;
+  if ($("stepPreview").classList.contains("hidden")) return;
+  clearTimeout(_patternRerenderTimer);
+  _patternRerenderTimer = setTimeout(async () => {
+    await computeNewNames();
+    renderPreview();
+  }, 200);
+});
+
+function applyManualPattern(pattern, date, counter, folderName) {
+  const d = (date instanceof Date && !isNaN(date)) ? date : new Date();
+  return pattern.replace(/%(c+|[ymdhnstf])/g, tok => {
+    if (tok[1] === "c") {
+      if (counter == null) return ""; // 폴더명 생성용: 카운터 토큰 제거
+      return String(counter).padStart(tok.length - 1, "0");
+    }
+    switch (tok) {
+      case "%y": return String(d.getFullYear());
+      case "%m": return pad2(d.getMonth() + 1);
+      case "%d": return pad2(d.getDate());
+      case "%h": return pad2(d.getHours());
+      case "%n": return pad2(d.getMinutes());
+      case "%s": return pad2(d.getSeconds());
+      case "%t": return String(Math.floor(d.getTime() / 1000));
+      case "%f": return folderName || "";
+      default: return tok;
+    }
+  });
+}
+
+// 폴더명 생성: 파일명 패턴에서 "_%c+" (언더스코어+카운터) 부분만 자동 제거 후 적용
+function generateFolderNameFromPattern(p) {
+  const pattern = $("manualPattern").value.trim();
+  if (!pattern) return p.koreanName || p.originalName;
+  const date = (p.date instanceof Date) ? p.date : new Date();
+  const fName = p.koreanName || p.originalName;
+  // "_%c+" 또는 " %c+" 형태(공백/언더스코어 + 카운터)를 통째로 제거
+  const folderPattern = pattern.replace(/[\s_]*%c+/g, "");
+  let name = applyManualPattern(folderPattern, date, null, fName);
+  // 연속 공백/언더스코어 정리, 앞뒤 trim
+  name = name.replace(/[\s_]{2,}/g, m => m[0]).replace(/^[\s_]+|[\s_]+$/g, "");
+  return name || p.koreanName || p.originalName;
+}
+
+// 패턴에 %c가 없을 때 중복 방지용 자동 일련번호 부여
+function ensureUnique(name, ext, usedSet) {
+  let candidate = name + ext;
+  if (!usedSet.has(candidate)) { usedSet.add(candidate); return candidate; }
+  let i = 1;
+  while (usedSet.has(`${name}_${i}${ext}`)) i++;
+  candidate = `${name}_${i}${ext}`;
+  usedSet.add(candidate);
+  return candidate;
+}
+
 // ---------- Pick folder ----------
 $("dropzone").onclick = pickFolder;
 $("dropzone").addEventListener("dragover", e => { e.preventDefault(); $("dropzone").classList.add("drag"); });
@@ -438,11 +591,21 @@ async function pickFolder() {
 
 async function startAnalyze() {
   $("rootPath").textContent = "📂 " + rootHandle.name;
+  if (ruleMode === "manual" && !$("manualPattern").value.trim()) {
+    alert("파일명 패턴을 입력해주세요.");
+    return;
+  }
   showSection("stepAnalyzing");
   $("analyzeProgress").textContent = "";
   try {
     await buildPlan();
-    if (plan.some(p => p.needsName || p.needsDate)) {
+    // 수동 모드도 패턴에 %f가 있는데 한글 추출이 안 된 폴더가 있으면 입력 단계 표시
+    const pattern = $("manualPattern").value;
+    const manualNeedsName = ruleMode === "manual" && /%f/.test(pattern) && plan.some(p => p.needsName);
+    if (ruleMode === "auto" && plan.some(p => p.needsName || p.needsDate)) {
+      renderInputStep();
+      showSection("stepInput");
+    } else if (manualNeedsName) {
       renderInputStep();
       showSection("stepInput");
     } else {
@@ -668,7 +831,7 @@ function renderInputStep() {
   });
 }
 
-$("inputDone").onclick = () => {
+$("inputDone").onclick = async () => {
   // Collect inputs
   document.querySelectorAll("#inputList input").forEach(inp => {
     const i = +inp.dataset.idx;
@@ -686,11 +849,19 @@ $("inputDone").onclick = () => {
     alert(`${missing.length}개 폴더에 미입력 항목이 있습니다.`);
     return;
   }
-  finalizePlanAndPreview();
+  await finalizePlanAndPreview();
 };
 
 // ---------- Compute new names ----------
-function computeNewNames() {
+async function computeNewNames() {
+  if (ruleMode === "manual") {
+    await computeNewNamesManual();
+  } else {
+    computeNewNamesAuto();
+  }
+}
+
+function computeNewNamesAuto() {
   for (const p of plan) {
     const dateStr = formatDate(p.date);
     p.newFolderName = `${p.koreanName}(${dateStr})`;
@@ -711,32 +882,91 @@ function computeNewNames() {
   }
 }
 
+async function computeNewNamesManual() {
+  for (const p of plan) {
+    await applyManualToFolder(p);
+  }
+}
+
+// 폴더 1개에 대해서만 폴더명/파일명 재계산 (편집 시 호출)
+async function applyManualToFolder(p) {
+  const pattern = $("manualPattern").value.trim();
+  const hasCounter = /%c/.test(pattern);
+  // 폴더명: 사용자가 직접 편집한 경우엔 유지, 아니면 패턴으로 자동 생성
+  if (!p.folderNameEdited) p.newFolderName = generateFolderNameFromPattern(p);
+  const fName = p.koreanName || p.originalName;
+
+  // 정렬: 사진(EXIF) → 기타(파일명)
+  const images = p.files.filter(f => f.exifDate).sort((a,b) => a.exifDate - b.exifDate);
+  const others = p.files.filter(f => !f.exifDate).sort((a,b) => a.name.localeCompare(b.name, "ko"));
+  const sorted = [...images, ...others];
+
+  const used = new Set();
+  for (let i = 0; i < sorted.length; i++) {
+    const f = sorted[i];
+    // 사용자가 폴더 날짜를 직접 입력했으면 그 날짜로 모든 파일 통일,
+    // 아니면 개별 파일의 EXIF/수정일 사용
+    let date = p.dateUserSet ? p.date : f.exifDate;
+    if (!date) {
+      try {
+        const file = await f.handle.getFile();
+        date = new Date(file.lastModified);
+      } catch { date = new Date(); }
+    }
+    const { ext } = splitExt(f.name);
+    const base = applyManualPattern(pattern, date, i + 1, fName);
+    f.newName = hasCounter ? base + ext : ensureUnique(base, ext, used);
+  }
+  p.files = sorted;
+}
+
 // ---------- Preview ----------
-function finalizePlanAndPreview() {
-  computeNewNames();
+async function finalizePlanAndPreview() {
+  await computeNewNames();
   renderPreview();
   showSection("stepPreview");
+}
+
+function dateToInputValue(d) {
+  if (!(d instanceof Date) || isNaN(d)) return "";
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
 }
 
 function renderPreview() {
   // Summary
   const totalFolders = plan.length;
   const totalFiles = plan.reduce((s,p) => s + p.files.length, 0);
+  const missingDate = plan.filter(p => !p.date).length;
+  const warnHtml = missingDate
+    ? `<span class="chip warn">⚠ 날짜 미확인 폴더 <b>${missingDate}</b> — 아래 표에서 직접 입력해 주세요</span>`
+    : "";
   $("summary").innerHTML = `
     <span class="chip">대상 폴더 <b>${totalFolders}</b></span>
     <span class="chip">총 파일 <b>${totalFiles}</b></span>
+    ${warnHtml}
   `;
 
   // Table
   const tbody = $("previewTable").querySelector("tbody");
   tbody.innerHTML = "";
-  for (const p of plan) {
+  plan.forEach((p, idx) => {
     const folderUnchanged = p.isRoot || p.originalName === p.newFolderName;
     const trF = document.createElement("tr");
-    trF.className = "folder";
+    trF.className = "folder" + (!p.date ? " needs-date" : "");
+    trF.dataset.planIdx = idx;
+    const dateVal = dateToInputValue(p.date);
+    const dateInputHtml =
+      `<input type="date" data-folder-idx="${idx}" value="${dateVal}">`;
+    const newFolderCell = ruleMode === "manual"
+      ? `<input type="text" class="folder-name-input" data-plan-idx="${idx}" value="${esc(p.newFolderName)}" style="width:100%;background:var(--bg2);color:var(--accent);border:1px solid var(--surface2);border-radius:4px;padding:4px 6px;font-weight:bold">`
+      : esc(p.newFolderName) + (p.isRoot ? " <small>(이름 변경은 복사 모드에서만)</small>" : "");
     trF.innerHTML = `
-      <td>${esc(p.originalName)}${p.isRoot ? " <small>(최상위)</small>" : ""}</td>
-      <td>${esc(p.newFolderName)}${p.isRoot ? " <small>(이름 변경은 복사 모드에서만)</small>" : ""}</td>
+      <td><span class="folder-toggle" data-plan-idx="${idx}" title="펼치기/접기">▼</span>${esc(p.originalName)}${p.isRoot ? " <small>(최상위)</small>" : ""}<span class="file-count">(${p.files.length}개)</span></td>
+      <td>${newFolderCell}</td>
+      <td>${dateInputHtml}</td>
       <td>${folderUnchanged ? "변경 없음" : "📁 폴더 변경"}</td>
     `;
     tbody.appendChild(trF);
@@ -744,18 +974,125 @@ function renderPreview() {
       const tr = document.createElement("tr");
       const changed = f.name !== f.newName;
       tr.className = changed ? "changed" : "same";
+      tr.dataset.planIdx = idx;
       tr.innerHTML = `
         <td>${esc(f.name)}</td>
         <td class="new">${esc(f.newName)}</td>
-        <td>${changed ? "✏ 변경" : "동일"}${f.exifDate ? " · EXIF " + formatDate(f.exifDate) : ""}</td>
+        <td colspan="2">${changed ? "✏ 변경" : "동일"}${f.exifDate ? " · EXIF " + formatDate(f.exifDate) : ""}</td>
       `;
       tbody.appendChild(tr);
     }
+  });
+
+  // 폴더 접기/펼치기 토글
+  tbody.querySelectorAll(".folder-toggle").forEach(btn => {
+    btn.addEventListener("click", e => {
+      e.stopPropagation();
+      const i = btn.dataset.planIdx;
+      const fileRows = tbody.querySelectorAll(`tr[data-plan-idx="${i}"]:not(.folder)`);
+      const isCollapsed = btn.textContent === "▶";
+      fileRows.forEach(tr => tr.classList.toggle("file-hidden", !isCollapsed));
+      btn.textContent = isCollapsed ? "▼" : "▶";
+    });
+  });
+
+  // 폴더별 날짜 입력 핸들러 — 그 폴더만 재계산
+  tbody.querySelectorAll('input[type=date][data-folder-idx]').forEach(inp => {
+    inp.addEventListener("change", async () => {
+      const i = +inp.dataset.folderIdx;
+      const p = plan[i];
+      if (!p) return;
+      const d = parseDateInput(inp.value);
+      if (d) {
+        p.date = d;
+        p.dateUserSet = true;
+        p.needsDate = false;
+      } else {
+        p.date = null;
+        p.dateUserSet = false;
+      }
+      if (ruleMode === "manual") {
+        await applyManualToFolder(p);
+        refreshFolderRows(i);
+        updateNeedsDateUI(i);
+        updateSummaryWarn();
+      } else {
+        await computeNewNames();
+        renderPreview();
+      }
+    });
+  });
+
+  // 폴더명 직접 편집 (수동 모드) — 디바운스
+  if (ruleMode === "manual") {
+    tbody.querySelectorAll(".folder-name-input").forEach(inp => {
+      inp.addEventListener("input", onFolderNameEdit);
+    });
   }
 
-  // Root-rename notice
-  const hasRootTarget = plan.some(p => p.isRoot);
+  // Root-rename notice (폴더 이름이 바뀌는 모드에서만 의미 있음)
+  const hasRootTarget = plan.some(p => p.isRoot && p.originalName !== p.newFolderName);
   $("rootRenameNotice").classList.toggle("hidden", !hasRootTarget);
+}
+
+let _folderEditTimer = null;
+async function onFolderNameEdit(e) {
+  const inp = e.target;
+  const idx = +inp.dataset.planIdx;
+  const p = plan[idx];
+  if (!p) return;
+  p.newFolderName = inp.value;
+  p.folderNameEdited = true; // 이후 패턴 변경 시 자동 덮어쓰기 방지
+  clearTimeout(_folderEditTimer);
+  _folderEditTimer = setTimeout(async () => {
+    await applyManualToFolder(p);
+    refreshFolderRows(idx);
+  }, 120);
+}
+
+// 단일 폴더의 파일 행과 상태 셀만 갱신 (전체 re-render 회피)
+function refreshFolderRows(pIdx) {
+  const p = plan[pIdx];
+  if (!p) return;
+  const tbody = $("previewTable").querySelector("tbody");
+  const fileRows = tbody.querySelectorAll(`tr[data-plan-idx="${pIdx}"]:not(.folder)`);
+  fileRows.forEach((tr, i) => {
+    const f = p.files[i];
+    if (!f) return;
+    const changed = f.name !== f.newName;
+    tr.className = (changed ? "changed" : "same") + (tr.classList.contains("file-hidden") ? " file-hidden" : "");
+    tr.children[1].textContent = f.newName;
+    tr.children[2].textContent = (changed ? "✏ 변경" : "동일") + (f.exifDate ? " · EXIF " + formatDate(f.exifDate) : "");
+  });
+  // 폴더 행: 상태 셀(4번째) 갱신
+  const folderRow = tbody.querySelector(`tr.folder[data-plan-idx="${pIdx}"]`);
+  if (folderRow) {
+    const unchanged = p.isRoot || p.originalName === p.newFolderName;
+    folderRow.children[3].textContent = unchanged ? "변경 없음" : "📁 폴더 변경";
+  }
+}
+
+// 날짜 미확인 폴더 강조 클래스 갱신
+function updateNeedsDateUI(pIdx) {
+  const p = plan[pIdx];
+  if (!p) return;
+  const tbody = $("previewTable").querySelector("tbody");
+  const folderRow = tbody.querySelector(`tr.folder[data-plan-idx="${pIdx}"]`);
+  if (folderRow) folderRow.classList.toggle("needs-date", !p.date);
+}
+
+// 상단 요약 칩의 "날짜 미확인 N" 메시지 갱신
+function updateSummaryWarn() {
+  const missingDate = plan.filter(p => !p.date).length;
+  const summary = $("summary");
+  const warn = summary.querySelector(".chip.warn");
+  if (missingDate > 0) {
+    const html = `<span class="chip warn">⚠ 날짜 미확인 폴더 <b>${missingDate}</b> — 아래 표에서 직접 입력해 주세요</span>`;
+    if (warn) warn.outerHTML = html;
+    else summary.insertAdjacentHTML("beforeend", html);
+  } else if (warn) {
+    warn.remove();
+  }
 }
 
 // ---------- Destination ----------
@@ -774,9 +1111,24 @@ $("pickDestBtn").onclick = async () => {
   }
 };
 $("backToInput").onclick = () => {
-  if (plan.some(p => p.needsName || p.needsDate)) { renderInputStep(); showSection("stepInput"); }
-  else showSection("stepInput") || renderInputStep();
+  if (ruleMode === "manual") {
+    showSection("stepPick");
+  } else if (plan.some(p => p.needsName || p.needsDate)) {
+    renderInputStep(); showSection("stepInput");
+  } else {
+    renderInputStep(); showSection("stepInput");
+  }
 };
+
+function resetState() {
+  rootHandle = null; plan = []; destHandle = null; destMode = "inplace";
+  document.querySelector('input[name="dest"][value="inplace"]').checked = true;
+  $("destPicker").classList.add("hidden");
+  $("rootPath").textContent = "";
+  $("destPath").textContent = "";
+  $("execute").disabled = false;
+  showSection("stepPick");
+}
 
 // ---------- Execute ----------
 $("execute").onclick = async () => {
@@ -876,15 +1228,7 @@ function renderReport(report) {
 }
 
 // ---------- Reset ----------
-$("reset").onclick = () => {
-  rootHandle = null; plan = []; destHandle = null; destMode = "inplace";
-  document.querySelector('input[name="dest"][value="inplace"]').checked = true;
-  $("destPicker").classList.add("hidden");
-  $("rootPath").textContent = "";
-  $("destPath").textContent = "";
-  $("execute").disabled = false;
-  showSection("stepPick");
-};
+$("reset").onclick = resetState;
 </script>
 </body>
 </html>
