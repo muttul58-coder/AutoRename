@@ -86,6 +86,8 @@
   tr.folder .file-count{color:var(--muted);font-weight:normal;font-size:12px;margin-left:6px}
   tr.file-hidden{display:none}
   tr.folder.needs-date td{background:var(--yellow);color:#000}
+  tr.folder.needs-name td input.folder-name-input{background:#ffe8e8;color:#900;
+    border:1px solid var(--red);font-weight:bold}
   tr.folder.needs-date td input[type=date]{background:#fff;color:#000;
     border:1px solid #b08400}
   tr.folder td input[type=date]{font-size:13px;padding:3px 6px;
@@ -940,13 +942,18 @@ function renderPreview() {
   const totalFolders = plan.length;
   const totalFiles = plan.reduce((s,p) => s + p.files.length, 0);
   const missingDate = plan.filter(p => !p.date).length;
-  const warnHtml = missingDate
+  const missingName = plan.filter(p => !p.koreanName).length;
+  const warnDateHtml = missingDate
     ? `<span class="chip warn">⚠ 날짜 미확인 폴더 <b>${missingDate}</b> — 아래 표에서 직접 입력해 주세요</span>`
+    : "";
+  const warnNameHtml = missingName
+    ? `<span class="chip warn">⚠ 한글 이름 추출 실패 폴더 <b>${missingName}</b> — "변경 후" 칸에서 직접 입력해 주세요</span>`
     : "";
   $("summary").innerHTML = `
     <span class="chip">대상 폴더 <b>${totalFolders}</b></span>
     <span class="chip">총 파일 <b>${totalFiles}</b></span>
-    ${warnHtml}
+    ${warnNameHtml}
+    ${warnDateHtml}
   `;
 
   // Table
@@ -954,8 +961,9 @@ function renderPreview() {
   tbody.innerHTML = "";
   plan.forEach((p, idx) => {
     const folderUnchanged = p.isRoot || p.originalName === p.newFolderName;
+    const needsName = !p.koreanName;
     const trF = document.createElement("tr");
-    trF.className = "folder" + (!p.date ? " needs-date" : "");
+    trF.className = "folder" + (!p.date ? " needs-date" : "") + (needsName ? " needs-name" : "");
     trF.dataset.planIdx = idx;
     const dateVal = dateToInputValue(p.date);
     const dateInputHtml =
@@ -1043,6 +1051,18 @@ async function onFolderNameEdit(e) {
   if (!p) return;
   p.newFolderName = inp.value;
   p.folderNameEdited = true; // 이후 패턴 변경 시 자동 덮어쓰기 방지
+  // 사용자가 직접 이름을 채워주면 한글 추출 실패 표시 해제 (%f용 koreanName 갱신)
+  const extracted = extractKorean(inp.value) || inp.value.trim();
+  if (extracted) {
+    p.koreanName = extracted;
+    p.needsName = false;
+  }
+  // 강조 클래스 / 요약 칩 즉시 갱신
+  const tbody = $("previewTable").querySelector("tbody");
+  const folderRow = tbody.querySelector(`tr.folder[data-plan-idx="${idx}"]`);
+  if (folderRow) folderRow.classList.toggle("needs-name", !p.koreanName);
+  updateSummaryWarn();
+
   clearTimeout(_folderEditTimer);
   _folderEditTimer = setTimeout(async () => {
     await applyManualToFolder(p);
@@ -1081,17 +1101,19 @@ function updateNeedsDateUI(pIdx) {
   if (folderRow) folderRow.classList.toggle("needs-date", !p.date);
 }
 
-// 상단 요약 칩의 "날짜 미확인 N" 메시지 갱신
+// 상단 요약 칩의 ⚠ 메시지 갱신 (날짜·이름 미확인 카운트)
 function updateSummaryWarn() {
   const missingDate = plan.filter(p => !p.date).length;
+  const missingName = plan.filter(p => !p.koreanName).length;
   const summary = $("summary");
-  const warn = summary.querySelector(".chip.warn");
+  summary.querySelectorAll(".chip.warn").forEach(c => c.remove());
+  if (missingName > 0) {
+    summary.insertAdjacentHTML("beforeend",
+      `<span class="chip warn">⚠ 한글 이름 추출 실패 폴더 <b>${missingName}</b> — "변경 후" 칸에서 직접 입력해 주세요</span>`);
+  }
   if (missingDate > 0) {
-    const html = `<span class="chip warn">⚠ 날짜 미확인 폴더 <b>${missingDate}</b> — 아래 표에서 직접 입력해 주세요</span>`;
-    if (warn) warn.outerHTML = html;
-    else summary.insertAdjacentHTML("beforeend", html);
-  } else if (warn) {
-    warn.remove();
+    summary.insertAdjacentHTML("beforeend",
+      `<span class="chip warn">⚠ 날짜 미확인 폴더 <b>${missingDate}</b> — 아래 표에서 직접 입력해 주세요</span>`);
   }
 }
 
