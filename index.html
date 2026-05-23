@@ -242,7 +242,7 @@
       A. File System Access API는 현재 <b>Chrome / Edge</b>에서만 지원됩니다.</p>
 
       <h3>8. ✏ 수동 규칙 모드</h3>
-      <p>상단의 <b>「수동 규칙」</b> 탭에서는 파일명 패턴을 직접 정의할 수 있습니다. 폴더명은 변경하지 않고 파일명만 일괄 변경됩니다.</p>
+      <p>상단의 <b>「수동 규칙」</b> 탭에서는 <b>파일명 패턴</b>을 직접 정의할 수 있습니다. 폴더명은 그 패턴에서 카운터(<code>_%c</code>)를 자동으로 뺀 형식으로 같이 적용됩니다.</p>
       <table>
         <tr><th>코드</th><th>의미</th><th>예시</th></tr>
         <tr><td><code>%y</code></td><td>년 (4자리)</td><td>2026</td></tr>
@@ -251,16 +251,22 @@
         <tr><td><code>%h</code></td><td>시 (2자리)</td><td>14</td></tr>
         <tr><td><code>%n</code></td><td>분 (2자리)</td><td>30</td></tr>
         <tr><td><code>%s</code></td><td>초 (2자리)</td><td>05</td></tr>
-        <tr><td><code>%c</code></td><td>폴더별 번호 (1부터)</td><td>1, 2, 3…</td></tr>
+        <tr><td><code>%c</code> / <code>%cc</code> / <code>%ccc</code></td><td>폴더별 번호 (자릿수)</td><td>1 / 01 / 001</td></tr>
         <tr><td><code>%t</code></td><td>유닉스 타임스탬프</td><td>1747890605</td></tr>
+        <tr><td><code>%f</code></td><td>추출된 한글 폴더명</td><td>추억여행</td></tr>
       </table>
       <div class="tip">
-        날짜·시간은 사진의 <b>EXIF 촬영일</b>을 기준으로 합니다. EXIF가 없는 파일(영상·문서 등)은 <b>파일 수정일</b>을 사용합니다.
+        날짜·시간은 사진의 <b>EXIF 촬영일</b>(없으면 <b>파일 수정일</b>) 기준입니다.
+        미리보기에서 폴더별로 날짜·폴더명을 직접 편집할 수 있고, 편집한 값은 패턴이 바뀌어도 유지됩니다.
         <br><code>%c</code>가 패턴에 없으면, 같은 이름이 충돌할 경우 자동으로 <code>_1</code>, <code>_2</code>가 붙습니다.
       </div>
       <p><b>패턴 예시:</b></p>
-      <div class="ex">이미지 %c <span class="arrow">→</span> <span class="out">이미지 1.jpg, 이미지 2.jpg, …</span></div>
-      <div class="ex">%y-%m-%d_%c <span class="arrow">→</span> <span class="out">2026-05-22_1.jpg, 2026-05-22_2.jpg, …</span></div>
+      <div class="ex">%f_%ccc(%y.%m.%d.) <span class="arrow">→</span> 폴더: <span class="out">추억여행(2026.05.05.)</span><br>
+        <span class="arrow">→</span> 파일: <span class="out">추억여행_001(2026.05.05.).jpg</span>
+      </div>
+      <div class="ex">(%y.%m.%d.)%f_%ccc <span class="arrow">→</span> 폴더: <span class="out">(2026.05.05.)추억여행</span><br>
+        <span class="arrow">→</span> 파일: <span class="out">(2026.05.05.)추억여행_001.jpg</span>
+      </div>
       <div class="ex">photo_%y%m%d_%h%n%s <span class="arrow">→</span> <span class="out">photo_20260522_143005.jpg</span></div>
 
       <h3>9. 🔒 개인정보·보안</h3>
